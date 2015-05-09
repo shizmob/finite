@@ -33,15 +33,19 @@ uninstall-sysvinit:
 	@rm -f $(PREFIX)/sbin/{init,halt,poweroff,reboot,killall5}
 
 
-bin/sysvinit: src/init.o src/common.o src/sysvinit/init.o src/sysvinit/inittab.o
+bin:
+	@echo [ MK] bin/
+	@mkdir bin
+
+bin/sysvinit: bin/ src/init.o src/common.o src/sysvinit/init.o src/sysvinit/inittab.o
 	@echo [ LD] sysvinit
 	@$(CC) $(LDFLAGS) src/init.o src/common.o src/sysvinit/init.o src/sysvinit/inittab.o -o bin/sysvinit
 
-bin/sysvinit-halt: src/sysvinit/halt.o
+bin/sysvinit-halt: bin/ src/sysvinit/halt.o
 	@echo [ LD] sysvinit-halt
 	@$(CC) $(LDFLAGS) src/sysvinit/halt.o -o bin/sysvinit-halt
 
-bin/sysvinit-killall: src/sysvinit/killall5.o
+bin/sysvinit-killall: bin/ src/sysvinit/killall5.o
 	@echo [ LD] sysvinit-killall
 	@$(CC) $(LDFLAGS) src/sysvinit/killall5.o -o bin/sysvinit-killall
 
