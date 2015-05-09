@@ -225,7 +225,8 @@ static void handle_pipes(void)
             if (read(fifo, &msg, sizeof(msg)) == sizeof(msg) && msg.magic == SYSV_MESSAGE_MAGIC)
                 switch (msg.cmd) {
                 case SYSV_MESSAGE_RUNLEVEL:
-                    enter_runlevel(msg.runlevel, msg.sleeptime, tasks, ntasks);
+                    if (msg.runlevel != runlevel)
+                        enter_runlevel(msg.runlevel, msg.sleeptime, tasks, ntasks);
                     break;
                 default:
                     /* ??? */
