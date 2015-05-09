@@ -203,7 +203,7 @@ static void handle_pipes(void)
     int fifo = open_fifo();
     struct pollfd polls[2] = {
         { reappipe[0], POLLIN, 0 },
-        { fifo,        POLLIN, 0 }
+        { fifo,        POLLIN | POLLHUP, 0 }
     };
 
     for (;;) {
@@ -211,13 +211,13 @@ static void handle_pipes(void)
         if (ret <= 0)
             continue;
 
-        if (polls[0].revents) {
+        if (polls[0].revents & POLLIN) {
             /* reap pipe: respawn task */
             int i;
             read(reappipe[0], &i, sizeof(i));
             run_task(&tasks[i], 0);
         }
-        if (polls[1].revents) {
+        if (polls[1].revents & POLLIN) {
             /* initctl pipe */
             struct sysv_message msg;
             if (read(fifo, &msg, sizeof(msg)) == sizeof(msg) && msg.magic == SYSV_MESSAGE_MAGIC)
@@ -229,6 +229,11 @@ static void handle_pipes(void)
                     /* ??? */
                     break;
                 }
+        }
+        if (polls[1].revents & POLLHUP) {
+             /* reopen FIFO after writer is done with it */
+             close(fifo);
+             polls[1].fd = fifo = open_fifo();
         }
     }
 }
