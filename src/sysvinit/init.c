@@ -21,7 +21,7 @@ static int    enter_runlevel(int runlevel, int sleeptime, struct init_task *task
 static int    run_task(struct init_task *task, int wait);
 static int    kill_tasks(int newlevel, int sleeptime, struct init_task *tasks, unsigned n);
 static void   reap_child(int signal);
-static int    open_fifo(void);
+static int    reopen_fifo(int);
 static void   handle_pipes(void);
 
 static int    runlevel;
@@ -187,8 +187,10 @@ static int kill_tasks(int oldlevel, int sleeptime, struct init_task *tasks, unsi
 }
 
 /* get FIFO pipe */
-static int open_fifo(void)
+static int reopen_fifo(int fd)
 {
+    if (fd >= 0)
+        close(fd);
     struct stat st;
     if (stat(SYSV_FIFO, &st) < 0 || !S_ISFIFO(st.st_mode)) {
         unlink(SYSV_FIFO);
@@ -200,7 +202,7 @@ static int open_fifo(void)
 /* main loop after initialization: handle respawn or /dev/initctl input */
 static void handle_pipes(void)
 {
-    int fifo = open_fifo();
+    int fifo = reopen_fifo(-1);
     struct pollfd polls[2] = {
         { reappipe[0], POLLIN, 0 },
         { fifo,        POLLIN | POLLHUP, 0 }
@@ -230,10 +232,8 @@ static void handle_pipes(void)
                     break;
                 }
         }
-        if (polls[1].revents & POLLHUP) {
-             /* reopen FIFO after writer is done with it */
-             close(fifo);
-             polls[1].fd = fifo = open_fifo();
-        }
+        if (polls[0].revents & POLLIN || polls[1].revents & POLLHUP)
+             /* reopen FIFO after writer is done with it, or after a child exec, just to be sure */
+             polls[1].fd = fifo = reopen_fifo(fifo);
     }
 }
