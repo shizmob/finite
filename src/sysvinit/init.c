@@ -21,8 +21,8 @@ static int    enter_runlevel(int runlevel, int sleeptime, struct init_task *task
 static int    run_task(struct init_task *task, int wait);
 static int    kill_tasks(int newlevel, int sleeptime, struct init_task *tasks, unsigned n);
 static void   reap_child(int signal);
-static int    reopen_fifo(int);
 static void   handle_pipes(void);
+static int    reopen_fifo(int fd);
 
 static int    runlevel;
 static int    ntasks = 0;
@@ -106,23 +106,6 @@ static int enter_runlevel(int newlevel, int sleeptime, struct init_task *tasks, 
     return 1;
 }
 
-/* reap child */
-static void reap_child(int signal)
-{
-    pid_t pid = wait(NULL);
-    if (pid < 0)
-        return;
-    for (int i = 0; i < ntasks; i++)
-        if (tasks[i].pid == pid) {
-            tasks[i].pid = -1;
-            tasks[i].flags &= ~FLAG_RUNNING;
-            tasks[i].flags |=  FLAG_IDLE;
-            /* respawn task if needed */
-            if (tasks[i].action == ACTION_RESPAWN && (tasks[i].runlevels & runlevel))
-                write(reappipe[1], &i, sizeof(i));
-        }
-}
-
 /* run task */
 static int run_task(struct init_task *task, int wait)
 {
@@ -186,20 +169,24 @@ static int kill_tasks(int oldlevel, int sleeptime, struct init_task *tasks, unsi
     return 1;
 }
 
-/* get FIFO pipe */
-static int reopen_fifo(int fd)
+/* reap died tasks */
+static void reap_child(int sig)
 {
-    if (fd >= 0)
-        close(fd);
-    struct stat st;
-    if (stat(SYSV_FIFO, &st) < 0 || !S_ISFIFO(st.st_mode)) {
-        unlink(SYSV_FIFO);
-        mkfifo(SYSV_FIFO, SYSV_FIFO_MODE);
-    }
-    return open(SYSV_FIFO, O_RDONLY | O_CLOEXEC);
+    pid_t pid = wait(NULL);
+    if (pid < 0)
+        return;
+    for (int i = 0; i < ntasks; i++)
+        if (tasks[i].pid == pid) {
+            tasks[i].pid = -1;
+            tasks[i].flags &= ~FLAG_RUNNING;
+            tasks[i].flags |=  FLAG_IDLE;
+            /* respawn task if needed */
+            if (tasks[i].action == ACTION_RESPAWN && (tasks[i].runlevels & runlevel))
+                write(reappipe[1], &i, sizeof(i));
+        }
 }
 
-/* main loop after initialization: handle respawn or /dev/initctl input */
+/* handle task respawn and /dev/initctl input */
 static void handle_pipes(void)
 {
     int fifo = reopen_fifo(-1);
@@ -237,4 +224,17 @@ static void handle_pipes(void)
              /* reopen FIFO after writer is done with it, or after a child exec, just to be sure */
              polls[1].fd = fifo = reopen_fifo(fifo);
     }
+}
+
+/* get FIFO pipe */
+static int reopen_fifo(int fd)
+{
+    if (fd >= 0)
+        close(fd);
+    struct stat st;
+    if (stat(SYSV_FIFO, &st) < 0 || !S_ISFIFO(st.st_mode)) {
+        unlink(SYSV_FIFO);
+        mkfifo(SYSV_FIFO, SYSV_FIFO_MODE);
+    }
+    return open(SYSV_FIFO, O_RDONLY | O_CLOEXEC);
 }
