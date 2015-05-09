@@ -95,9 +95,10 @@ static int enter_runlevel(int newlevel, int sleeptime, struct init_task *tasks, 
     if (oldlevel)
         kill_tasks(oldlevel, sleeptime, tasks, n);
     for (unsigned i = 0; i < n; i++)
-        if (tasks[i].runlevels & runlevel && (tasks[i].action == ACTION_ONCE || tasks[i].action == ACTION_WAIT || tasks[i].action == ACTION_RESPAWN))
+        if ((tasks[i].runlevels & runlevel) && (tasks[i].action == ACTION_ONCE || tasks[i].action == ACTION_WAIT || tasks[i].action == ACTION_RESPAWN))
             run_task(&tasks[i], wait);
 
+    /* all commands finished, power down the system */
     if (newlevel == RUNLEVEL_SHUTDOWN)
         shutdown(MODE_POWER_OFF);
     else if (newlevel == RUNLEVEL_REBOOT)
@@ -116,7 +117,8 @@ static void reap_child(int signal)
             tasks[i].pid = -1;
             tasks[i].flags &= ~FLAG_RUNNING;
             tasks[i].flags |=  FLAG_IDLE;
-            if (tasks[i].action == ACTION_RESPAWN && tasks[i].runlevels & runlevel)
+            /* respawn task if needed */
+            if (tasks[i].action == ACTION_RESPAWN && (tasks[i].runlevels & runlevel))
                 write(reappipe[1], &i, sizeof(i));
         }
 }
@@ -126,7 +128,6 @@ static int run_task(struct init_task *task, int wait)
 {
     if (task->action == ACTION_OFF)
         return 1;
-
     wait |= (task->action == ACTION_SYSINIT || task->action == ACTION_BOOTWAIT || task->action == ACTION_WAIT);
 
     task->flags &= ~FLAG_IDLE;
@@ -162,7 +163,7 @@ static int run_task(struct init_task *task, int wait)
     return 1;
 }
 
-/* kill task */
+/* kill tasks in old runlevel */
 static int kill_tasks(int oldlevel, int sleeptime, struct init_task *tasks, unsigned n)
 {
     for (int r = 0; r <= sleeptime; r++) {
@@ -196,6 +197,7 @@ static int open_fifo(void)
     return open(SYSV_FIFO, O_RDONLY | O_CLOEXEC);
 }
 
+/* main loop after initialization: handle respawn or /dev/initctl input */
 static void handle_pipes(void)
 {
     int fifo = open_fifo();
@@ -210,7 +212,7 @@ static void handle_pipes(void)
             continue;
 
         if (polls[0].revents) {
-            /* reap pipe */
+            /* reap pipe: respawn task */
             int i;
             read(reappipe[0], &i, sizeof(i));
             run_task(&tasks[i], 0);
