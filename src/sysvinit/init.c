@@ -20,7 +20,7 @@ static int    prepare_system(char *argv[], struct init_task *tasks, unsigned n);
 static int    enter_runlevel(int runlevel, int sleeptime, struct init_task *tasks, unsigned n);
 static int    run_task(struct init_task *task, int wait);
 static int    kill_tasks(int newlevel, int sleeptime, struct init_task *tasks, unsigned n);
-static void   reap_child(int signal);
+static void   reap_task(int sig);
 static void   handle_pipes(void);
 static int    reopen_fifo(int fd);
 
@@ -52,8 +52,8 @@ static void prepare_env(void)
     sigfillset(&sigs);
 
     struct sigaction act;
+    act.sa_handler = reap_task;
     act.sa_mask    = sigs;
-    act.sa_handler = reap_child;
     act.sa_flags   = 0;
     sigaction(SIGCHLD, &act, NULL);
 }
@@ -170,7 +170,7 @@ static int kill_tasks(int oldlevel, int sleeptime, struct init_task *tasks, unsi
 }
 
 /* reap died tasks */
-static void reap_child(int sig)
+static void reap_task(int sig)
 {
     pid_t pid = wait(NULL);
     if (pid < 0)
