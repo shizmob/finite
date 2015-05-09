@@ -25,9 +25,9 @@ static void   handle_pipes(void);
 static int    reopen_fifo(int fd);
 
 static int    runlevel;
-static int    ntasks = 0;
-static int    reappipe[2];
+static int    ntasks;
 static struct init_task tasks[256];
+static int    reappipe[2];
 
 
 void init(char *argv[])
