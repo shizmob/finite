@@ -50,8 +50,8 @@ void wall(const char *message, ...)
     /* get TTY */
     char *tty = ttyname(1);
     if (tty) {
-        if (!strncmp(tty, "/dev/", sizeof("/dev/")))
-            tty += sizeof("/dev/");
+        if (!strncmp(tty, "/dev/", sizeof("/dev/") - 1))
+            tty += sizeof("/dev/") - 1;
     } else
         tty = "unknown";
 
@@ -81,7 +81,7 @@ void wall(const char *message, ...)
 
         /* device does not always start with /dev/ */
         char device[32];
-        if (strncmp(u->ut_line, "/dev/", sizeof("/dev/"))) {
+        if (strncmp(u->ut_line, "/dev/", sizeof("/dev/") - 1)) {
             strncpy(device, "/dev/", sizeof(device) - 1);
             device[sizeof(device) - 1] = 0;
         } else
