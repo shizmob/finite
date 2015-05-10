@@ -132,7 +132,7 @@ static void setup_shutdown(void)
     /* write PID file */
     int fd = open(PID_FILE, O_WRONLY | O_CREAT | O_TRUNC);
     if (fd < 0) {
-        perror("shutdown: could not open PID file");
+        perror("shutdown: no instance running");
         return;
     }
     pid_t pid = getpid();
