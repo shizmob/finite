@@ -8,6 +8,7 @@
 #include <getopt.h>
 #include "init.h"
 #include "inittab.h"
+#include "wall.h"
 
 #define  FIFO_TIMEOUT 5
 
@@ -70,6 +71,8 @@ int main(int argc, char *argv[])
 
     /* actually change runlevel */
     if (doit) {
+        warn(runlevel, 0);
+
         /* open initctl FIFO, make sure we don't hang forever */
         sigset_t sigs;
         sigemptyset(&sigs);
