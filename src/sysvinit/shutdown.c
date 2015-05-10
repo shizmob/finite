@@ -93,6 +93,7 @@ int main(int argc, char *argv[])
             int tosleep = seconds - NOLOGIN_CUTOFF;
             while ((tosleep = sleep(tosleep)));
             warn(runlevel, NOLOGIN_CUTOFF);
+            seconds = NOLOGIN_CUTOFF;
         }
 
         /* create nologin and sleep until it's time */
