@@ -182,6 +182,8 @@ static void cleanup(int signal)
     unlink(PID_FILE);
     if (nologin)
         unlink(NOLOGIN_FILE);
+    if (signal)
+        _exit(1);
 }
 
 static int parse_when(const char *when)
