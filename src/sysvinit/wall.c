@@ -42,7 +42,7 @@ void wall(const char *message, ...)
     uid_t uid = getuid();
     const char *username;
     struct passwd *pwd = getpwuid(uid);
-    if (!pwd)
+    if (pwd)
         username = pwd->pw_name;
     else
         username = "unknown";
