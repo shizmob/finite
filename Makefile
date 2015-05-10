@@ -24,9 +24,9 @@ install-sysvinit: sysvinit
 	@echo [INS] halt
 	@install -m 0755 bin/sysvinit-halt $(PREFIX)/sbin/halt
 	@echo [ LN] poweroff
-	@ln -s halt $(PREFIX)/sbin/poweroff
+	@ln -sf halt $(PREFIX)/sbin/poweroff
 	@echo [ LN] reboot
-	@ln -s halt $(PREFIX)/sbin/reboot
+	@ln -sf halt $(PREFIX)/sbin/reboot
 	@echo [INS] killall5
 	@install -m 0700 bin/sysvinit-killall $(PREFIX)/sbin/killall5
 
