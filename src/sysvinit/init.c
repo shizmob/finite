@@ -111,18 +111,14 @@ static int run_task(struct init_task *task, int wait)
 {
     if (task->action == ACTION_OFF || (task->flags & FLAG_RUNNING))
         return 1;
-    wait |= (task->action == ACTION_SYSINIT || task->action == ACTION_BOOTWAIT || task->action == ACTION_WAIT);
-
-    task->flags &= ~FLAG_IDLE;
     task->flags |=  FLAG_RUNNING;
-    if (wait)
-        task->flags |= FLAG_WAITING;
+
+    wait |= (task->action == ACTION_SYSINIT || task->action == ACTION_BOOTWAIT || task->action == ACTION_WAIT);
 
     pid_t pid = fork();
     switch (pid) {
     case -1:
-        task->flags &= ~FLAG_WAITING & ~FLAG_RUNNING;
-        task->flags |=  FLAG_IDLE;
+        task->flags &= ~FLAG_RUNNING;
         return 0;
     case 0:
         /* child process */
@@ -137,8 +133,7 @@ static int run_task(struct init_task *task, int wait)
         if (wait) {
             while (waitpid(task->pid, NULL, 0) < 0 && errno == EINTR);
             task->pid = -1;
-            task->flags &= ~FLAG_WAITING & ~FLAG_RUNNING;
-            task->flags |= FLAG_IDLE;
+            task->flags &= ~FLAG_RUNNING;
         }
         break;
     }
@@ -179,7 +174,6 @@ static void reap_task(int sig)
         if (tasks[i].pid == pid) {
             tasks[i].pid = -1;
             tasks[i].flags &= ~FLAG_RUNNING;
-            tasks[i].flags |=  FLAG_IDLE;
             /* respawn task if needed */
             if (tasks[i].action == ACTION_RESPAWN && (tasks[i].runlevels & runlevel))
                 write(reappipe[1], &i, sizeof(i));

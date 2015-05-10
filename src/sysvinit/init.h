@@ -44,7 +44,5 @@ enum init_runlevels
 enum init_flags
 {
     FLAG_RUNNING      = 0x1, /* started and running */
-    FLAG_IDLE         = 0x2, /* started and stopped */
-    FLAG_WAITING      = 0x4, /* waiting for process to finish */
-    FLAG_SPAMMING     = 0x8  /* process is respawning too quickly */
+    FLAG_SPAMMING     = 0x2  /* process is respawning too quickly */
 };
