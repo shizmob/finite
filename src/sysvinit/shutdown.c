@@ -101,9 +101,8 @@ int main(int argc, char *argv[])
         nologin = create_nologin(message);
         while ((seconds = sleep(seconds)));
     }
-    warn(runlevel, 0);
 
-    /* finally, shutdown */
+    /* finally, shutdown - final warning is done by the halt binary */
     cleanup(0);
     if (doit) {
         char *run = sysv_runlevel(runlevel);
