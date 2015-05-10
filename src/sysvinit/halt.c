@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    if (!runlevel) {
+    if (!runlevel && doit) {
         fprintf(stderr, "%s: no runlevel specified\n", name);
         return 1;
     }
