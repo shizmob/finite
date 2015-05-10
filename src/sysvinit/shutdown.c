@@ -9,6 +9,7 @@
 #include <signal.h>
 #include <errno.h>
 #include <sys/stat.h>
+#include <sys/wait.h>
 #include <getopt.h>
 #include "init.h"
 #include "wall.h"
