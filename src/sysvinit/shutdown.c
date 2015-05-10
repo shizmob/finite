@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
     int runlevel = RUNLEVEL_SINGLE;
 
     char o;
-    while ((o = getopt(argc, argv, "akrhPHfFnc:")) >= 0) {
+    while ((o = getopt(argc, argv, "akrhPHfFnc")) >= 0) {
         switch (o) {
         case 'a':
         case 'f':
