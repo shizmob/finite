@@ -4,12 +4,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
-#include <spawn.h>
 #include <fcntl.h>
 #include <signal.h>
 #include <errno.h>
 #include <sys/stat.h>
-#include <sys/wait.h>
 #include <getopt.h>
 #include "init.h"
 #include "wall.h"
@@ -106,20 +104,8 @@ int main(int argc, char *argv[])
     cleanup(0);
     if (doit) {
         char *run = sysv_runlevel(runlevel);
-        pid_t pid;
-        if (posix_spawnp(&pid, "halt", NULL, NULL, (char *[]) { "halt", run, NULL }, NULL)) {
-            perror("shutdown: could not spawn halt");
-            goto err;
-        }
-        int status = 1;
-        while (waitpid(pid, &status, 0) < 0 && errno == EINTR);
-        if (status) {
-            fprintf(stderr, "shutdown: halt reported failure\n");
-            goto err;
-        }
+        return execvp("halt", (char *[]) { "halt", run, NULL });
     }
-
-    /* we're done here, clean up */
     return 0;
 err:
     cleanup(0);
