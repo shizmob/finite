@@ -25,6 +25,7 @@ int main(int argc, char *argv[])
         name++;
     else
         name = argv[0];
+
     if (!strcmp(name, "poweroff"))
         runlevel = RUNLEVEL_SHUTDOWN;
     else if (!strcmp(name, "reboot"))
@@ -69,13 +70,14 @@ int main(int argc, char *argv[])
 
     /* actually change runlevel */
     if (doit) {
-        /* open initctl FIFO */
+        /* open initctl FIFO, make sure we don't hang forever */
         sigset_t sigs;
         sigemptyset(&sigs);
+
         struct sigaction act;
         act.sa_handler = timeout;
-        act.sa_mask = sigs;
-        act.sa_flags = 0;
+        act.sa_mask    = sigs;
+        act.sa_flags   = 0;
         sigaction(SIGALRM, &act, NULL);
 
         alarm(FIFO_TIMEOUT);
