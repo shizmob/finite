@@ -69,7 +69,6 @@ int main(int argc, char *argv[])
     const char *when = argv[optind++];
     const char *message = argv[optind];
 
-
     struct stat st;
     if (!stat(PID_FILE, &st)) {
         fprintf(stderr, "shutdown: an instance is already running\n");
@@ -79,7 +78,6 @@ int main(int argc, char *argv[])
 
     setup_shutdown();
 
-    /* parse time formats: "now", +m, hh:mm */
     int seconds = parse_when(when);
     if (seconds < 0) {
         fprintf(stderr, "shutdown: invalid time format: %s\n", when);
@@ -113,9 +111,9 @@ err:
     return 1;
 }
 
+/* setup signal handlers and write PID file */
 static void setup_shutdown(void)
 {
-    /* setup cleanup handlers */
     sigset_t sigs;
     sigemptyset(&sigs);
 
@@ -128,7 +126,6 @@ static void setup_shutdown(void)
     sigaction(SIGQUIT, &act, NULL);
     sigaction(SIGTERM, &act, NULL);
 
-    /* write PID file */
     int fd = open(PID_FILE, O_WRONLY | O_CREAT | O_TRUNC);
     if (fd < 0) {
         perror("shutdown: no instance running");
@@ -143,6 +140,7 @@ static void setup_shutdown(void)
     close(fd);
 }
 
+/* signal existing shutdown process to stop */
 static int cancel_shutdown(void)
 {
     int fd = open(PID_FILE, O_RDONLY);
@@ -165,6 +163,7 @@ static int cancel_shutdown(void)
     return 0;
 }
 
+/* clean up our own mess and exit if we were signaled by someone */
 static void cleanup(int signal)
 {
     unlink(PID_FILE);
@@ -174,6 +173,7 @@ static void cleanup(int signal)
         _exit(1);
 }
 
+/* parse time formats: "now", +m, hh:mm */
 static int parse_when(const char *when)
 {
     unsigned hour, min;
@@ -196,6 +196,7 @@ static int parse_when(const char *when)
     return -1;
 }
 
+/* prevent users from logging in by writing our message to the nologin file */
 static int create_nologin(const char *message)
 {
     struct stat st;
