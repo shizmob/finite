@@ -1,22 +1,15 @@
 #define  _XOPEN_SOURCE 700
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <signal.h>
 #include <errno.h>
+#include <getopt.h>
 #include "init.h"
 
 #define  FIFO_TIMEOUT 5
-
-static struct command {
-    const char *program;
-    int runlevel;
-} commands[] = {
-    { "poweroff", RUNLEVEL_SHUTDOWN },
-    { "reboot",   RUNLEVEL_REBOOT   },
-    { 0 }
-};
 
 static void timeout(int sig);
 static int  timedout;
@@ -24,50 +17,96 @@ static int  timedout;
 
 int main(int argc, char *argv[])
 {
+    int runlevel = 0;
+
+    /* try to get runlevel from program name */
     const char *name = strrchr(argv[0], '/');
     if (name)
         name++;
     else
         name = argv[0];
+    if (!strcmp(name, "poweroff"))
+        runlevel = RUNLEVEL_SHUTDOWN;
+    else if (!strcmp(name, "reboot"))
+        runlevel = RUNLEVEL_REBOOT;
 
-    const struct command *cmd;
-    for (cmd = commands; cmd->program; cmd++)
-        if (!strcmp(name, cmd->program))
+    /* or from arguments */
+    int doit = 1;
+    char o;
+    while ((o = getopt(argc, argv, "ihdfnpwt:")) >= 0) {
+        switch (o) {
+        case 'n':
+        case 'f':
+        case 'h':
+        case 'i':
+        case 'd':
+            /* ignored, legacy*/
             break;
-    if (!cmd->program) {
-        fprintf(stderr, "halt: unknown mode: %s\n", name);
+        case 'p':
+            runlevel = RUNLEVEL_SHUTDOWN;
+            break;
+        case 'w':
+            doit = 0;
+            break;
+        default:
+            fprintf(stderr, "%s: unknown option: -%c\n", name, optopt);
+            return 1;
+        }
+    }
+    if (argv[optind]) {
+        errno = 0;
+        runlevel = strtol(argv[optind], NULL, 10);
+        if (runlevel < 0 || errno) {
+            fprintf(stderr, "%s: not a runlevel: %s\n", name, argv[optind]);
+            return 1;
+        }
+    }
+
+    if (!runlevel) {
+        fprintf(stderr, "%s: no runlevel specified\n", name);
         return 1;
     }
 
+    /* actually change runlevel */
+    if (doit) {
+        /* open initctl FIFO */
+        sigset_t sigs;
+        sigemptyset(&sigs);
+        struct sigaction act;
+        act.sa_handler = timeout;
+        act.sa_mask = sigs;
+        act.sa_flags = 0;
+        sigaction(SIGALRM, &act, NULL);
 
-    /* enter runlevel */
-    signal(SIGALRM, timeout);
-    alarm(FIFO_TIMEOUT);
-    int fd = open(SYSV_FIFO, O_WRONLY);
-    alarm(0);
-    if (fd < 0) {
-        if (timedout)
-            fprintf(stderr, "%s: can't open %s: timed out (%d seconds)\n", cmd->program, SYSV_FIFO, FIFO_TIMEOUT);
-        else
-            fprintf(stderr, "%s: can't open %s: %s\n", cmd->program, SYSV_FIFO, strerror(errno));
-        goto err;
-    }
+        alarm(FIFO_TIMEOUT);
+        int fd = open(SYSV_FIFO, O_WRONLY);
+        alarm(0);
+        if (fd < 0) {
+            if (timedout)
+                fprintf(stderr, "%s: can't open %s: timed out (%d seconds)\n", name, SYSV_FIFO, FIFO_TIMEOUT);
+            else
+                fprintf(stderr, "%s: can't open %s: %s\n", name, SYSV_FIFO, strerror(errno));
+            goto err;
+        }
 
-    struct sysv_message msg = { 0 };
-    msg.magic     = SYSV_MESSAGE_MAGIC;
-    msg.cmd       = SYSV_MESSAGE_RUNLEVEL;
-    msg.runlevel  = cmd->runlevel;
-    msg.sleeptime = SYSV_DEFAULT_SLEEP;
-    if (write(fd, &msg, sizeof(msg)) != sizeof(msg)) {
-        fprintf(stderr, "%s: can't write to %s\n", cmd->program, SYSV_FIFO);
-        goto err;
-    }
+        /* send runlevel message */
+        struct sysv_message msg = { 0 };
+        msg.magic     = SYSV_MESSAGE_MAGIC;
+        msg.cmd       = SYSV_MESSAGE_RUNLEVEL;
+        msg.runlevel  = runlevel;
+        msg.sleeptime = SYSV_DEFAULT_SLEEP;
+        if (write(fd, &msg, sizeof(msg)) != sizeof(msg)) {
+            fprintf(stderr, "%s: can't write to %s\n", name, SYSV_FIFO);
+            goto err;
+        }
 
-    return 0;
+        return 0;
 err:
-    if (fd >= 0)
-        close(fd);
-    return 1;
+        if (fd >= 0)
+            close(fd);
+        return 1;
+    }
+    return 0;
 }
 
 static void timeout(int signal)
