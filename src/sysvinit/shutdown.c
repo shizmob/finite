@@ -115,6 +115,19 @@ err:
 
 static void setup_shutdown(void)
 {
+    /* setup cleanup handlers */
+    sigset_t sigs;
+    sigemptyset(&sigs);
+
+    struct sigaction act;
+    act.sa_handler = cleanup;
+    act.sa_mask = sigs;
+    act.sa_flags = 0;
+    sigaction(SIGHUP,  &act, NULL);
+    sigaction(SIGINT,  &act, NULL);
+    sigaction(SIGQUIT, &act, NULL);
+    sigaction(SIGTERM, &act, NULL);
+
     /* write PID file */
     int fd = open(PID_FILE, O_WRONLY | O_CREAT | O_TRUNC);
     if (fd < 0) {
@@ -128,19 +141,6 @@ static void setup_shutdown(void)
         return;
     }
     close(fd);
-
-    /* setup cleanup handlers */
-    sigset_t sigs;
-    sigemptyset(&sigs);
-
-    struct sigaction act;
-    act.sa_handler = cleanup;
-    act.sa_mask = sigs;
-    act.sa_flags = 0;
-    sigaction(SIGHUP,  &act, NULL);
-    sigaction(SIGINT,  &act, NULL);
-    sigaction(SIGQUIT, &act, NULL);
-    sigaction(SIGTERM, &act, NULL);
 }
 
 static int cancel_shutdown(void)
