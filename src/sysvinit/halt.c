@@ -101,6 +101,7 @@ int main(int argc, char *argv[])
             fprintf(stderr, "%s: can't write to %s\n", name, SYSV_FIFO);
             goto err;
         }
+        close(fd);
 
         return 0;
 err:
