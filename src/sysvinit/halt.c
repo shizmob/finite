@@ -1,5 +1,4 @@
 #define  _XOPEN_SOURCE 700
-#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -8,6 +7,7 @@
 #include <errno.h>
 #include <getopt.h>
 #include "init.h"
+#include "inittab.h"
 
 #define  FIFO_TIMEOUT 5
 
@@ -55,9 +55,9 @@ int main(int argc, char *argv[])
         }
     }
     if (argv[optind]) {
-        errno = 0;
-        runlevel = strtol(argv[optind], NULL, 10);
-        if (runlevel < 0 || errno) {
+        runlevel = parse_runlevels(argv[optind]);
+        /* ensure we only get one runlevel back */
+        if (!runlevel || (runlevel & (runlevel - 1))) {
             fprintf(stderr, "%s: not a runlevel: %s\n", name, argv[optind]);
             return 1;
         }
