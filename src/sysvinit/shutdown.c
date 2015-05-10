@@ -137,7 +137,9 @@ static void setup_shutdown(void)
     act.sa_handler = cleanup;
     act.sa_mask = sigs;
     act.sa_flags = 0;
+    sigaction(SIGHUP,  &act, NULL);
     sigaction(SIGINT,  &act, NULL);
+    sigaction(SIGQUIT, &act, NULL);
     sigaction(SIGTERM, &act, NULL);
 }
 
