@@ -81,7 +81,7 @@ static int killall(int sig)
         if (sscanf(p, "%*c %*d %*d %d %*d %*d %*u %*u %*u %*u %*u %*u %*u %*d %*d %*d %*d %*d %*d %*u %*u %*d %*u %lu %lu", &procsid, &startcode, &endcode) < 3)
             goto next;
 
-        /* skip over processes in our session and kernel processes */
+        /* skip processes in our session and kernel processes */
         if (!procsid || procsid == sid || (startcode == 0 && endcode == 0))
             goto next;
 

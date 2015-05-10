@@ -1,14 +1,15 @@
-#pragma  once
+#pragma once
 
 #define INITTAB_FILE       "/etc/inittab"
 #define SYSV_FIFO          "/dev/initctl"
 #define SYSV_FIFO_MODE     0660
 #define SYSV_MESSAGE_MAGIC 0x03091969
+#define SYSV_MESSAGE_SIZE  384
 #define SYSV_DEFAULT_SLEEP 5
 
 enum sysv_message_command
 {
-    SYSV_MESSAGE_RUNLEVEL = 1
+    SYSV_MESSAGE_RUNLEVEL  = 1
 };
 
 struct sysv_message
@@ -17,7 +18,7 @@ struct sysv_message
     int  cmd;
     int  runlevel;
     int  sleeptime;
-    char data[384 - 4 * sizeof(int)];
+    char data[SYSV_MESSAGE_SIZE - 4 * sizeof(int)];
 } __attribute__((packed));
 
 enum init_action
