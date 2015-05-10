@@ -65,13 +65,11 @@ int main(int argc, char *argv[])
         }
     }
 
-    if (!runlevel && doit) {
-        fprintf(stderr, "%s: no runlevel specified\n", name);
-        return 1;
-    }
-
-    /* actually change runlevel */
     if (doit) {
+        if (!runlevel) {
+            fprintf(stderr, "%s: no runlevel specified\n", name);
+            return 1;
+        }
         warn(runlevel, 0);
         return halt(runlevel, name);
     }
