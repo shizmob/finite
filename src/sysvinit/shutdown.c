@@ -170,7 +170,7 @@ static int cancel_shutdown(void)
     }
     close(fd);
 
-    if (kill(pid, SIGINT) < 0) {
+    if (kill(pid, SIGTERM) < 0) {
         perror("shutdown: could not signal other instance");
         return 1;
     }
