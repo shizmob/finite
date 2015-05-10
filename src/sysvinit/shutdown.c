@@ -5,18 +5,26 @@
 #include <string.h>
 #include <time.h>
 #include <spawn.h>
+#include <fcntl.h>
+#include <signal.h>
 #include <errno.h>
 #include <sys/stat.h>
 #include <getopt.h>
 #include "init.h"
 #include "wall.h"
 
+#define  PID_FILE       "/var/run/shutdown.pid"
 #define  NOLOGIN_FILE   "/etc/nologin"
 #define  NOLOGIN_CUTOFF 300
 
+static void  setup_shutdown(void);
+static int   cancel_shutdown(void);
+static void  cleanup(int signal);
 static int   parse_when(const char *when);
 static int   create_nologin(const char *message);
 static char *sysv_runlevel(int runlevel);
+
+static int   nologin;
 
 
 int main(int argc, char *argv[])
@@ -52,21 +60,33 @@ int main(int argc, char *argv[])
             return 1;
         }
     }
-    if (!argv[optind] && !cancel) {
+    if (cancel)
+        return cancel_shutdown();
+
+    if (!argv[optind]) {
         fprintf(stderr, "shutdown: need time argument\n");
         return 1;
     }
-    const char *when    = argv[optind++];
+    const char *when = argv[optind++];
     const char *message = argv[optind];
+
+
+    struct stat st;
+    if (!stat(PID_FILE, &st)) {
+        fprintf(stderr, "shutdown: an instance is already running\n");
+        return 1;
+    }
+
+
+    setup_shutdown();
 
     /* parse time formats: "now", +m, hh:mm */
     int seconds = parse_when(when);
     if (seconds < 0) {
         fprintf(stderr, "shutdown: invalid time format: %s\n", when);
-        return 1;
+        goto err;
     }
 
-    int nologin = 0;
     if (seconds) {
         /* warn user and sleep until we have to create /etc/nologin */
         warn(runlevel, seconds);
@@ -83,6 +103,7 @@ int main(int argc, char *argv[])
     warn(runlevel, 0);
 
     /* finally, shutdown */
+    cleanup(0);
     if (doit) {
         char *run = sysv_runlevel(runlevel);
         pid_t pid;
@@ -90,15 +111,76 @@ int main(int argc, char *argv[])
             perror("shutdown: could not spawn halt");
             goto err;
         }
+        int status = 1;
+        while (waitpid(pid, &status, 0) < 0 && errno == EINTR);
+        if (status) {
+            fprintf(stderr, "shutdown: halt reported failure\n");
+            goto err;
+        }
     }
 
-    if (nologin)
-        unlink(NOLOGIN_FILE);
+    /* we're done here, clean up */
     return 0;
 err:
+    cleanup(0);
+    return 1;
+}
+
+static void setup_shutdown(void)
+{
+    /* write PID file */
+    int fd = open(PID_FILE, O_WRONLY | O_CREAT | O_TRUNC);
+    if (fd < 0) {
+        perror("shutdown: could not open PID file");
+        return;
+    }
+    pid_t pid = getpid();
+    if (write(fd, &pid, sizeof(pid)) != sizeof(pid)) {
+        perror("shutdown: could not write PID file");
+        close(fd);
+        return;
+    }
+    close(fd);
+
+    /* setup cleanup handlers */
+    sigset_t sigs;
+    sigemptyset(&sigs);
+
+    struct sigaction act;
+    act.sa_handler = cleanup;
+    act.sa_mask = sigs;
+    act.sa_flags = 0;
+    sigaction(SIGINT,  &act, NULL);
+    sigaction(SIGTERM, &act, NULL);
+}
+
+static int cancel_shutdown(void)
+{
+    int fd = open(PID_FILE, O_RDONLY);
+    if (fd < 0) {
+        perror("shutdown: could not open PID file");
+        return 1;
+    }
+    pid_t pid;
+    if (read(fd, &pid, sizeof(pid)) != sizeof(pid)) {
+        perror("shutdown: could not read PID file");
+        close(fd);
+        return 1;
+    }
+    close(fd);
+
+    if (kill(pid, SIGINT) < 0) {
+        perror("shutdown: could not signal other instance");
+        return 1;
+    }
+    return 0;
+}
+
+static void cleanup(int signal)
+{
+    unlink(PID_FILE);
     if (nologin)
         unlink(NOLOGIN_FILE);
-    return 1;
 }
 
 static int parse_when(const char *when)
