@@ -19,6 +19,7 @@ sysvinit: bin/sysvinit bin/sysvinit-halt bin/sysvinit-killall bin/sysvinit-shutd
 
 install-sysvinit: sysvinit
 	@install -d -m 0755 $(PREFIX)/sbin
+	@install -d -m 0755 $(PREFIX)/share/man/man8
 	@echo [INS] init
 	@install -m 0700 bin/sysvinit $(PREFIX)/sbin/init
 	@echo [INS] halt
@@ -31,10 +32,13 @@ install-sysvinit: sysvinit
 	@install -m 0755 bin/sysvinit-shutdown $(PREFIX)/sbin/shutdown
 	@echo [INS] killall5
 	@install -m 0700 bin/sysvinit-killall $(PREFIX)/sbin/killall5
+	@echo [MAN] init.8
+	@install -m 0755 src/sysvinit/init.8 $(PREFIX)/share/man/man8
 
 uninstall-sysvinit:
 	@echo [UNS] sysvinit
 	@rm -f $(PREFIX)/sbin/{init,halt,poweroff,reboot,shutdown,killall5}
+	@rm -f $(PREFIX)/share/man/man8/init.8
 
 bin/sysvinit: bin src/init.o src/common.o src/sysvinit/init.o src/sysvinit/inittab.o
 	@echo [ LD] sysvinit

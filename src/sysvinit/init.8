@@ -1,0 +1,127 @@
+.Dd May 14, 2015
+.Dt INIT 8
+.Os
+.Sh NAME
+.Nm init
+.Nd initialize system
+.sp
+.Sh SYNOPSIS
+.Nm
+.Op Cm single | Cm emergency | Cm 0 | Cm 1 | Cm 3 | Cm 6
+.sp
+.Sh DESCRIPTION
+.Nm
+is a somewhat System V-compatible init process implementation.
+.Pp
+.Nm
+is the first program to run in user mode by the kernel. It is responsible for initializing and bringing up the system.
+When invoked as the first process,
+.Nm
+reads
+.Pa /etc/inittab
+for information on how to bring the system up.
+.sp
+.Ss Runlevels
+A
+.Ic runlevel
+is a software configuration which represents the current state of the system, and the associated exclusive sets of processes
+.Nm
+manages. The runlevel is determined at
+.Nm
+start, but can be changed during runtime. This implementation supports the following runlevels:
+.Pp
+.Bl -column
+.It Ic 0 Ta The system is shutting down.
+.It Ic 1 Ta The system is in single-user mode.
+.It Ic 3 Ta The system is in multi-user mode.
+.It Ic 6 Ta The system is rebooting.
+.El
+.Pp
+.Nm
+first checks the kernel command line for a numeric argument.
+If one is found and it matches a supported runlevel, it is used as the runlevel to start under.
+If either
+.Cm single
+or
+.Cm emergency
+are found on the kernel command line, runlevel
+.Ic 1
+is used.
+If no runlevel is found,
+.Nm
+checks
+.Pa /etc/inittab
+for an
+.Ic initdefault
+entry. If no such entry is found,
+.Nm
+defaults to runlevel 3.
+.sp
+.Ss Initialization
+Having determined the runlevel to start on,
+.Nm
+first executes the
+.Ic sysinit
+entries in
+.Pa /etc/inittab ,
+followed by the
+.Ic boot
+and
+.Ic bootwait
+entries in order of appearance. It then executes the entries corresponding to the chosen runlevel.
+It will automatically respawn entries marked as
+.Ic respawn :
+refer to
+.Xr inittab 5
+for details.
+.sp
+.Ss Changing runlevels
+The current runlevel can be changed at any time, provided the system is not in either runlevel
+.Ic 0
+or
+.Ic 6 .
+This is done by
+.Cm halt :
+refer to
+.Xr halt 8
+for details. Changing a runlevel makes
+.Nm
+terminate all the processes belonging to the current runlevel that are not in the new runlevel.
+.Nm
+then executes the remaining entries for the new runlevel. When switching to runlevel
+.Ic 0 ,
+.Nm
+will shutdown the system after having executed all entries. Similarly, when switching to runlevel
+.Ic 6 ,
+.Nm
+will reboot the system after having executed all entries.
+.sp
+.Ss Shutting down
+The system can be shut down by simply switching to runlevel
+.Ic 0 .
+Similarly, the system can be rebooted by simply switching to runlevel
+.Ic 6 .
+This implementation does not support halting the system.
+.sp
+.Sh ENVIRONMENT
+.Nm
+executes its children with the following environment variables set:
+.Pp
+.Bl -column "CONSOLE"
+.It Ev CONSOLE Ta If not given by the kernel,
+.Pa /dev/console .
+.It Ev HOME Ta Pa /
+.It Ev PATH Ta Pa /usr/sbin:/usr/bin:/sbin:/bin
+.It Ev PWD Ta Pa /
+.It Ev TERM Ta linux
+.It Ev USER Ta root
+.El
+.sp
+.Sh SEE ALSO
+.Xr inittab 5 ,
+.Xr halt 8 ,
+.Xr shutdown 8 ,
+.Xr killall5 8
+.sp
+.Sh AUTHORS
+.An Shiz Aq Mt hi@shiz.me
