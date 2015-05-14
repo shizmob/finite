@@ -4,4 +4,4 @@
 #define  DEFAULT_UMASK 022
 #define  DEFAULT_USER  "root"
 
-void prepare(void);
+void prepare_env(void);

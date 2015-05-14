@@ -6,7 +6,7 @@
 #include "common.h"
 
 /* get us into a somewhat same environment */
-void prepare(void)
+void prepare_env(void)
 {
     umask(DEFAULT_UMASK);
     chdir("/");

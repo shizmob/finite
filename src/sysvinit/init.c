@@ -16,7 +16,7 @@
 #include "init.h"
 #include "inittab.h"
 
-static void   prepare_env(void);
+static void   prepare(void);
 static int    prepare_system(char *argv[], struct init_task *tasks, unsigned n);
 static int    enter_runlevel(int runlevel, int sleeptime, struct init_task *tasks, unsigned n);
 static int    run_task(struct init_task *task, int wait);
@@ -34,8 +34,8 @@ static int    reappipe[2];
 void init(char *argv[])
 {
     int level;
-    prepare();
     prepare_env();
+    prepare();
 
     ntasks = parse_tab(INITTAB_FILE, tasks, 256);
     level  = prepare_system(argv, tasks, ntasks);
@@ -44,8 +44,8 @@ void init(char *argv[])
     handle_pipes();
 }
 
-/* set up reap pipe */
-static void prepare_env(void)
+/* set up reap pipe and signal handlers */
+static void prepare(void)
 {
     pipe2(reappipe, O_CLOEXEC);
 
