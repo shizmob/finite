@@ -18,6 +18,7 @@ void prepare_env(void)
     setenv("CONSOLE", con,            0);
     setenv("HOME",    "/",            0);
     setenv("PATH",    DEFAULT_PATH,   0);
+    setenv("PWD",     "/",            0);
     setenv("TERM",    DEFAULT_TERM,   0);
     setenv("USER",    DEFAULT_USER,   0);
 }
