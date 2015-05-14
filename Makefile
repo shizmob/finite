@@ -1,6 +1,7 @@
 CFLAGS =-std=c99 -Wall -Wextra -pedantic -Wno-unused-parameter -fPIC
 LDFLAGS=-pie -Wl,-z,relro -Wl,-z,now
 PREFIX=
+MANPREFIX=$(or $(PREFIX),/usr)
 
 .PHONY: all clean install uninstall
 all:
@@ -22,6 +23,8 @@ install-sysvinit: sysvinit
 	@install -d -m 0755 $(PREFIX)/share/man/man8
 	@echo [INS] init
 	@install -m 0700 bin/sysvinit $(PREFIX)/sbin/init
+	@echo [MAN] init.8
+	@install -m 0644 src/sysvinit/init.8 $(MANPREFIX)/share/man/man8
 	@echo [INS] halt
 	@install -m 0755 bin/sysvinit-halt $(PREFIX)/sbin/halt
 	@echo [ LN] poweroff
@@ -32,8 +35,6 @@ install-sysvinit: sysvinit
 	@install -m 0755 bin/sysvinit-shutdown $(PREFIX)/sbin/shutdown
 	@echo [INS] killall5
 	@install -m 0700 bin/sysvinit-killall $(PREFIX)/sbin/killall5
-	@echo [MAN] init.8
-	@install -m 0755 src/sysvinit/init.8 $(PREFIX)/share/man/man8
 
 uninstall-sysvinit:
 	@echo [UNS] sysvinit
