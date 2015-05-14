@@ -21,7 +21,7 @@ sysvinit: bin/sysvinit bin/sysvinit-halt bin/sysvinit-killall bin/sysvinit-shutd
 
 install-sysvinit: sysvinit
 	@install -d -m 0755 $(DESTDIR)/$(PREFIX)/sbin
-	@install -d -m 0755 $(DESTDIR)/$(PREFIX)/share/man/man8
+	@install -d -m 0755 $(DESTDIR)/$(MANPREFIX)/share/man/man8
 	@echo [INS] init
 	@install -m 0700 bin/sysvinit $(DESTDIR)/$(PREFIX)/sbin/init
 	@echo [MAN] init.8
