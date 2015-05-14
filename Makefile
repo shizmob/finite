@@ -2,7 +2,7 @@ CFLAGS =-std=c99 -Wall -Wextra -pedantic -Wno-unused-parameter -fPIC
 LDFLAGS=-pie -Wl,-z,relro -Wl,-z,now
 DESTDIR=
 PREFIX=
-MANPREFIX=$(or $(PREFIX),/usr)
+MANPREFIX=$(if $(subst /,,$(PREFIX)),$(PREFIX),/usr)
 
 .PHONY: all clean install uninstall
 all:
