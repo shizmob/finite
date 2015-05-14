@@ -69,10 +69,10 @@ static int prepare_system(char *argv[], struct init_task *tasks, unsigned n)
             break;
         }
     for (; *argv; argv++)
-        if (!strcmp(*argv, "single") || !strcmp(*argv, "-s"))
+        if (!strcmp(*argv, "single") || !strcmp(*argv, "emergency"))
             runlevel = RUNLEVEL_SINGLE;
-    if (!runlevel)
-        return 0;
+        else if (*argv[0] && !*argv[1] && parse_runlevels(*argv))
+            runlevel = parse_runlevels(*argv);
 
     /* run preparation commands */
     for (unsigned i = 0; i < n; i++)
