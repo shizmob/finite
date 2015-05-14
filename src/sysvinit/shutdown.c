@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
-#include <fcntl.h>
 #include <signal.h>
 #include <errno.h>
 #include <sys/stat.h>
@@ -126,35 +125,34 @@ static void setup_shutdown(void)
     sigaction(SIGQUIT, &act, NULL);
     sigaction(SIGTERM, &act, NULL);
 
-    int fd = open(PID_FILE, O_WRONLY | O_CREAT | O_TRUNC);
-    if (fd < 0) {
+    FILE *f = fopen(PID_FILE, "w");
+    if (!f) {
         perror("shutdown: no instance running");
         return;
     }
+
     pid_t pid = getpid();
-    if (write(fd, &pid, sizeof(pid)) != sizeof(pid)) {
+    if (fprintf(f, "%d", pid) <= 0)
         perror("shutdown: could not write PID file");
-        close(fd);
-        return;
-    }
-    close(fd);
+
+    fclose(f);
 }
 
 /* signal existing shutdown process to stop */
 static int cancel_shutdown(void)
 {
-    int fd = open(PID_FILE, O_RDONLY);
-    if (fd < 0) {
+    FILE *f = fopen(PID_FILE, "r");
+    if (!f) {
         perror("shutdown: could not open PID file");
         return 1;
     }
     pid_t pid;
-    if (read(fd, &pid, sizeof(pid)) != sizeof(pid)) {
+    if (fscanf(f, "%d", &pid) != 1) {
         perror("shutdown: could not read PID file");
-        close(fd);
+        fclose(f);
         return 1;
     }
-    close(fd);
+    fclose(f);
 
     if (kill(pid, SIGTERM) < 0) {
         perror("shutdown: could not signal other instance");
