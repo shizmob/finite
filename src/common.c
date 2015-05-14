@@ -21,19 +21,3 @@ void prepare(void)
     setenv("TERM",    DEFAULT_TERM,   0);
     setenv("USER",    DEFAULT_USER,   0);
 }
-
-/* shut down the system */
-void shutdown(int mode)
-{
-    switch (mode) {
-    case MODE_POWER_OFF:
-        reboot(RB_POWER_OFF);
-        break;
-    case MODE_REBOOT:
-        reboot(RB_AUTOBOOT);
-        break;
-    default:
-        /* ??? */
-        break;
-    }
-}

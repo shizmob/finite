@@ -10,6 +10,7 @@
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <sys/ioctl.h>
+#include <sys/reboot.h>
 
 #include "../common.h"
 #include "init.h"
@@ -100,9 +101,9 @@ static int enter_runlevel(int newlevel, int sleeptime, struct init_task *tasks, 
 
     /* all commands finished, power down the system */
     if (newlevel == RUNLEVEL_SHUTDOWN)
-        shutdown(MODE_POWER_OFF);
+        reboot(RB_POWER_OFF);
     else if (newlevel == RUNLEVEL_REBOOT)
-        shutdown(MODE_REBOOT);
+        reboot(RB_AUTOBOOT);
     return 1;
 }
 
