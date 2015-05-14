@@ -112,7 +112,7 @@ static int run_task(struct init_task *task, int wait)
 {
     if (task->action == ACTION_OFF || (task->flags & FLAG_RUNNING))
         return 1;
-    task->flags |=  FLAG_RUNNING;
+    task->flags |= FLAG_RUNNING;
 
     wait |= (task->action == ACTION_SYSINIT || task->action == ACTION_BOOTWAIT || task->action == ACTION_WAIT);
 
