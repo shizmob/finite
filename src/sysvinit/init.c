@@ -62,7 +62,7 @@ static void prepare(void)
 /* prepare system by running the important commands */
 static int prepare_system(char *argv[], struct init_task *tasks, unsigned n)
 {
-    int runlevel = 0;
+    int runlevel = RUNLEVEL_MULTI;
     for (unsigned i = 0; i < n; i++)
         if (tasks[i].action == ACTION_INITDEFAULT) {
             runlevel = tasks[i].runlevels;
