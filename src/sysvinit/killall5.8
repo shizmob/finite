@@ -1,0 +1,36 @@
+.Dd May 15, 2015
+.Dt KILLALL5 8
+.Os
+.Sh NAME
+.Nm killall5
+.Nd send signal to all processes
+.sp
+.Sh SYNOPSIS
+.Nm
+.Op Fl signal
+.sp
+.Sh DESCRIPTION
+.Nm
+is a mostly System V-compatible implementation of the killall command.
+It sends a signal to all processes it has permissions for, except for kernel threads and processes in its own session.
+The default signal when unspecified is -9, or SIGKILL.
+.Pp
+.Nm
+requires the
+.Xr proc 5
+pseudo-filesystem to be mounted on
+.Pa /proc .
+Without,
+.Nm
+will not function.
+.sp
+.Sh EXIT STATUS
+.Nm
+returns 1 if it could not read
+.Pa /proc 
+or the given signal is invalid. Otherwise,
+.Nm
+returns 0.
+.sp
+.Sh AUTHORS
+.An Shiz Aq Mt hi@shiz.me
