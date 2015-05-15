@@ -19,21 +19,24 @@ void warn(int runlevel, int seconds)
     const char *purpose;
     switch (runlevel) {
     case RUNLEVEL_SINGLE:
-        purpose = "for maintenance";
+        purpose = "down for maintenance";
+        break;
+    case RUNLEVEL_MULTI:
+        purpose = "back to normal operation";
         break;
     case RUNLEVEL_SHUTDOWN:
-        purpose = "for shutdown";
+        purpose = "down for shutdown";
         break;
     case RUNLEVEL_REBOOT:
-        purpose = "for reboot";
+        purpose = "down for reboot";
         break;
     }
     int mins = seconds / 60;
 
     if (seconds)
-        wall("The system is going down %s in %s%d minute%s!\n", purpose, mins ? "" : "<", max(mins, 1), mins == 1 ? "" : "s");
+        wall("The system is going %s in %s%d minute%s!\n", purpose, mins ? "" : "<", max(mins, 1), mins == 1 ? "" : "s");
     else
-        wall("The system is going down %s NOW!\n", purpose);
+        wall("The system is going %s NOW!\n", purpose);
 }
 
 void wall(const char *message, ...)
