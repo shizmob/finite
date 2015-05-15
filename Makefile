@@ -1,8 +1,11 @@
-CFLAGS =-std=c99 -Wall -Wextra -pedantic -Wno-unused-parameter -fPIC
-LDFLAGS=-pie -Wl,-z,relro -Wl,-z,now
+CFLAGS  =-std=c99 -Wall -Wextra -pedantic -Wno-unused-parameter -fPIC
+CPPFLAGS=-D_XOPEN_SOURCE=700
+LDFLAGS =-pie -Wl,-z,relro -Wl,-z,now
+
 DESTDIR=
 PREFIX=
 MANPREFIX=$(if $(subst /,,$(PREFIX)),$(PREFIX),/usr)
+
 
 .PHONY: all clean install uninstall
 all:
@@ -77,4 +80,4 @@ bin:
 
 %.o: %.c
 	@echo [ CC] $<
-	@$(CC) $(CFLAGS) -c $< -o $@
+	@$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@

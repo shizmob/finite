@@ -1,4 +1,3 @@
-#define  _XOPEN_SOURCE     700
 #include <unistd.h>
 #include <signal.h>
 #include <sys/wait.h>

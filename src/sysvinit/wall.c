@@ -1,4 +1,3 @@
-#define  _XOPEN_SOURCE 700
 #include <stdio.h>
 #include <stdarg.h>
 #include <unistd.h>
