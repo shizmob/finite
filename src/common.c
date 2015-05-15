@@ -4,7 +4,7 @@
 #include <sys/reboot.h>
 #include "common.h"
 
-/* get us into a somewhat same environment */
+/* get us into a somewhat sane environment */
 void prepare_env(void)
 {
     umask(DEFAULT_UMASK);
