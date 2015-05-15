@@ -51,7 +51,8 @@ install-sysvinit: sysvinit
 uninstall-sysvinit:
 	@echo [UNS] sysvinit
 	@rm -f $(DESTDIR)/$(PREFIX)/sbin/{init,halt,poweroff,reboot,shutdown,killall5}
-	@rm -f $(DESTDIR)/$(PREFIX)/share/man/man8/init.8
+	@rm -f $(DESTDIR)/$(MANPREFIX)/share/man/man5/inittab.5
+	@rm -f $(DESTDIR)/$(MANPREFIX)/share/man/man8/{init,halt,poweroff,reboot,shutdown,killall5}.8
 
 bin/sysvinit: bin src/init.o src/common.o src/sysvinit/init.o src/sysvinit/inittab.o
 	@echo [ LD] sysvinit
