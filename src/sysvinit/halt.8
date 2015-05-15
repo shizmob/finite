@@ -2,7 +2,9 @@
 .Dt HALT 8
 .Os
 .Sh NAME
-.Nm halt, poweroff, reboot
+.Nm halt ,
+.Nm poweroff ,
+.Nm reboot
 .Nd change system runlevel
 .sp
 .Sh SYNOPSIS
@@ -16,7 +18,7 @@
 .Op Fl w
 .sp
 .Sh DESCRIPTION
-.Nm halt
+.Nm
 changes the current runlevel of the system by messaging the
 .Cm init
 process.
@@ -42,7 +44,7 @@ for a list of valid runlevels and their meanings.
 .El
 .sp
 .Sh EXIT VALUE
-.Nm halt
+.Nm
 returns 1 if the given runlevel is invalid or it can not message the
 .Cm init
 process. Otherwise, it returns 0.
