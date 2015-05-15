@@ -155,10 +155,10 @@ static int kill_tasks(int oldlevel, int sleeptime)
                 continue;
             if (oldlevel && tasks[i].runlevels && !(tasks[i].runlevels & runlevel)) {
                 done = 0;
-                if (r == 0)
-                    kill(tasks[i].pid, SIGTERM);
-                else if (r == sleeptime)
+                if (r == sleeptime)
                     kill(tasks[i].pid, SIGKILL);
+                else if (r == 0)
+                    kill(tasks[i].pid, SIGTERM);
             }
         }
         if (done)
