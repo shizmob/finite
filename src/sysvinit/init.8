@@ -39,7 +39,7 @@ This implementation supports the following runlevels:
 .Pp
 .Nm
 first checks the kernel command line for a numeric argument.
-If one is found and it matches a supported runlevel, it is used as the runlevel to start under.
+If one is found and it matches a supported runlevel, it is used as the runlevel to start in.
 If either
 .Cm single
 or
@@ -58,7 +58,7 @@ If no such entry is found,
 .Nm
 defaults to runlevel 3.
 .Ss Initialization
-Having determined the runlevel to start on,
+Having determined the runlevel to start in,
 .Nm
 first executes the
 .Ic sysinit
@@ -69,7 +69,12 @@ followed by the
 and
 .Ic bootwait
 entries in order of appearance.
-It then executes the entries corresponding to the chosen runlevel.
+It then executes the
+.Ic once ,
+.Ic wait
+and
+.Ic respawn
+entries corresponding to the chosen runlevel.
 It will automatically respawn entries marked as
 .Ic respawn :
 refer to
@@ -89,7 +94,12 @@ Changing a runlevel makes
 .Nm
 terminate all the processes belonging to the current runlevel that are not in the new runlevel.
 .Nm
-then executes the remaining entries for the new runlevel.
+then executes the remaining
+.Ic once ,
+.Ic wait
+and
+.Ic respawn
+entries for the new runlevel.
 When switching to runlevel
 .Ic 0 ,
 .Nm

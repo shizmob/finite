@@ -43,7 +43,7 @@ All other fields are ignored.
 .It Sy initdefault
 The
 .Em runlevels
-field specifies the default runlevel the system starts as, if none is given otherwise.
+field specifies the default runlevel the system starts in, if none is given otherwise.
 The
 .Em command
 field is ignored.
@@ -106,7 +106,9 @@ This command will be passed to
 to execute.
 .El
 .Sh EXAMPLES
-A minimal inittab using a separate service manager located at
+A minimal
+.Nm
+using a separate service manager located at
 .Pa /sbin/rc :
 .Bd -literal -offset Ds
 si::sysinit:/sbin/rc sysinit
