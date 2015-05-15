@@ -41,7 +41,7 @@ install-sysvinit: sysvinit
 	@echo [INS] killall5
 	@install -m 0700 bin/sysvinit-killall $(DESTDIR)/$(PREFIX)/sbin/killall5
 	@echo [MAN] killall5.8
-	@install -m 0644 src/sysvnit/killall5.8 $(DESTDIR)/$(MANPREFIX)/share/man/man8
+	@install -m 0644 src/sysvinit/killall5.8 $(DESTDIR)/$(MANPREFIX)/share/man/man8
 
 uninstall-sysvinit:
 	@echo [UNS] sysvinit
