@@ -4,10 +4,8 @@
 int parse_runlevels(const char *runlevels)
 {
     int res = 0;
-
     for (; *runlevels; runlevels++)
         res |= parse_runlevel(*runlevels);
-
     return res;
 }
 
