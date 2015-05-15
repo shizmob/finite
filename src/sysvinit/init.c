@@ -17,31 +17,34 @@
 #include "inittab.h"
 
 static void   prepare(void);
-static int    prepare_system(char *argv[], struct init_task *tasks, unsigned n);
-static int    enter_runlevel(int runlevel, int sleeptime, struct init_task *tasks, unsigned n);
+static void   prepare_system(void);
+static int    determine_runlevel(char *argv[]);
+static int    enter_runlevel(int runlevel, int sleeptime);
 static int    run_task(struct init_task *task, int wait);
-static int    kill_tasks(int newlevel, int sleeptime, struct init_task *tasks, unsigned n);
+static int    kill_tasks(int newlevel, int sleeptime);
 static void   reap_task(int sig);
-static void   handle_pipes(void);
+static void   handle_communication(void);
 static int    reopen_fifo(int fd);
 
 static int    runlevel;
-static int    ntasks;
 static struct init_task tasks[256];
+static int    ntasks;
 static int    reappipe[2];
 
 
 void init(char *argv[])
 {
     int level;
-    prepare_env();
     prepare();
+    prepare_env();
 
-    ntasks = parse_tab(INITTAB_FILE, tasks, 256);
-    level  = prepare_system(argv, tasks, ntasks);
-    enter_runlevel(level, SYSV_DEFAULT_SLEEP, tasks, ntasks);
+    ntasks = parse_tab(INITTAB_FILE, tasks, sizeof(tasks) / sizeof(*tasks));
+    prepare_system();
 
-    handle_pipes();
+    level = determine_runlevel(argv);
+    enter_runlevel(level, SYSV_DEFAULT_SLEEP);
+
+    handle_communication();
 }
 
 /* set up reap pipe and signal handlers */
@@ -60,33 +63,33 @@ static void prepare(void)
 }
 
 /* prepare system by running the important commands */
-static int prepare_system(char *argv[], struct init_task *tasks, unsigned n)
+static void prepare_system(void)
 {
-    int runlevel = RUNLEVEL_MULTI;
-    for (unsigned i = 0; i < n; i++)
-        if (tasks[i].action == ACTION_INITDEFAULT) {
-            runlevel = tasks[i].runlevels;
-            break;
-        }
-    for (; *argv; argv++)
-        if (!strcmp(*argv, "single") || !strcmp(*argv, "emergency"))
-            runlevel = RUNLEVEL_SINGLE;
-        else if (*argv[0] && !*argv[1] && parse_runlevels(*argv))
-            runlevel = parse_runlevels(*argv);
-
     /* run preparation commands */
-    for (unsigned i = 0; i < n; i++)
+    for (unsigned i = 0; i < ntasks; i++)
         if (tasks[i].action == ACTION_SYSINIT)
             run_task(&tasks[i], 0);
-    for (unsigned i = 0; i < n; i++)
+    for (unsigned i = 0; i < ntasks; i++)
         if (tasks[i].action == ACTION_BOOT || tasks[i].action == ACTION_BOOTWAIT)
             run_task(&tasks[i], 0);
+}
 
-    return runlevel;
+/* determine runlevel to start in */
+static int determine_runlevel(char *argv[])
+{
+    for (unsigned i = 0; i < ntasks; i++)
+        if (tasks[i].action == ACTION_INITDEFAULT)
+            return tasks[i].runlevels;
+    for (; *argv; argv++)
+        if (!strcmp(*argv, "single") || !strcmp(*argv, "emergency"))
+            return RUNLEVEL_SINGLE;
+        else if (*argv[0] && !*argv[1] && parse_runlevels(*argv))
+            return parse_runlevels(*argv);
+    return RUNLEVEL_MULTI;
 }
 
 /* enter runlevel */
-static int enter_runlevel(int newlevel, int sleeptime, struct init_task *tasks, unsigned n)
+static int enter_runlevel(int newlevel, int sleeptime)
 {
     /* if we're shutting down, wait for everything to finish */
     int wait = (newlevel == RUNLEVEL_SHUTDOWN || newlevel == RUNLEVEL_REBOOT);
@@ -94,8 +97,8 @@ static int enter_runlevel(int newlevel, int sleeptime, struct init_task *tasks, 
     runlevel = newlevel;
 
     if (oldlevel)
-        kill_tasks(oldlevel, sleeptime, tasks, n);
-    for (unsigned i = 0; i < n; i++)
+        kill_tasks(oldlevel, sleeptime);
+    for (unsigned i = 0; i < ntasks; i++)
         if ((tasks[i].runlevels & runlevel) && (tasks[i].action == ACTION_ONCE || tasks[i].action == ACTION_WAIT || tasks[i].action == ACTION_RESPAWN))
             run_task(&tasks[i], wait);
 
@@ -143,11 +146,11 @@ static int run_task(struct init_task *task, int wait)
 }
 
 /* kill tasks in old runlevel */
-static int kill_tasks(int oldlevel, int sleeptime, struct init_task *tasks, unsigned n)
+static int kill_tasks(int oldlevel, int sleeptime)
 {
     for (int r = 0; r <= sleeptime; r++) {
         int done = 1;
-        for (unsigned i = 0; i < n; i++) {
+        for (unsigned i = 0; i < ntasks; i++) {
             if (!(tasks[i].flags & FLAG_RUNNING))
                 continue;
             if (oldlevel && tasks[i].runlevels && !(tasks[i].runlevels & runlevel)) {
@@ -182,7 +185,7 @@ static void reap_task(int sig)
 }
 
 /* handle task respawn and /dev/initctl input */
-static void handle_pipes(void)
+static void handle_communication(void)
 {
     int fifo = reopen_fifo(-1);
     struct pollfd polls[2] = {
@@ -208,7 +211,7 @@ static void handle_pipes(void)
                 switch (msg.cmd) {
                 case SYSV_MESSAGE_RUNLEVEL:
                     if (msg.runlevel != runlevel)
-                        enter_runlevel(msg.runlevel, msg.sleeptime, tasks, ntasks);
+                        enter_runlevel(msg.runlevel, msg.sleeptime);
                     break;
                 default:
                     /* ??? */
