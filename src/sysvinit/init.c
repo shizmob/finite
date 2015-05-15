@@ -65,10 +65,10 @@ static void prepare(void)
 static void prepare_system(void)
 {
     /* run preparation commands */
-    for (unsigned i = 0; i < ntasks; i++)
+    for (int i = 0; i < ntasks; i++)
         if (tasks[i].action == ACTION_SYSINIT)
             run_task(&tasks[i], 0);
-    for (unsigned i = 0; i < ntasks; i++)
+    for (int i = 0; i < ntasks; i++)
         if (tasks[i].action == ACTION_BOOT || tasks[i].action == ACTION_BOOTWAIT)
             run_task(&tasks[i], 0);
 }
@@ -76,7 +76,7 @@ static void prepare_system(void)
 /* determine runlevel to start in */
 static int determine_runlevel(char *argv[])
 {
-    for (unsigned i = 0; i < ntasks; i++)
+    for (int i = 0; i < ntasks; i++)
         if (tasks[i].action == ACTION_INITDEFAULT)
             return tasks[i].runlevels;
     for (; *argv; argv++)
@@ -97,7 +97,7 @@ static int enter_runlevel(int newlevel, int sleeptime)
 
     if (oldlevel)
         kill_tasks(oldlevel, sleeptime);
-    for (unsigned i = 0; i < ntasks; i++)
+    for (int i = 0; i < ntasks; i++)
         if ((tasks[i].runlevels & runlevel) && (tasks[i].action == ACTION_ONCE || tasks[i].action == ACTION_WAIT || tasks[i].action == ACTION_RESPAWN))
             run_task(&tasks[i], wait);
 
@@ -149,7 +149,7 @@ static int kill_tasks(int oldlevel, int sleeptime)
 {
     for (int r = 0; r <= sleeptime; r++) {
         int done = 1;
-        for (unsigned i = 0; i < ntasks; i++) {
+        for (int i = 0; i < ntasks; i++) {
             if (!(tasks[i].flags & FLAG_RUNNING))
                 continue;
             if (oldlevel && tasks[i].runlevels && !(tasks[i].runlevels & runlevel)) {
