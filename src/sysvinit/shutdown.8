@@ -1,0 +1,90 @@
+.Dd May 15, 2015
+.Dt SHUTDOWN 8
+.Os
+.Sh NAME
+.Nm shutdown
+.Nd bring down the system
+.sp
+.Sh SYNOPSIS
+.Nm
+.Op Fl h | Fl r
+.Op Fl k
+.Op Fl c
+.Ar TIME
+.Op Ar MESSAGE
+.sp
+.Sh DESCRIPTION
+.Nm
+brings the system down in a safe and controlled way: all users are notified and
+.Xr login 1
+is blocked.
+The system can be brought down immediately or after a delay.
+After notifying the users, blocking new logins and optionally waiting the given amount of time,
+.Nm
+invokes
+.Xr halt 8
+to change the runlevel in order to perform the shutdown.
+If
+.Fl h
+or
+.Fl r
+are not given, the default is to switch the system to single-user mode for maintenance.
+.Pp
+.Nm
+writes its process ID to
+.Pa /var/run/shutdown.pid ,
+so an ongoing
+.Nm shutdown
+process can be stopped by another invocation with the
+.Fl c
+flag specified.
+If invoked with a delay,
+.Nm shutdown
+will create the
+.Pa /etc/nologin
+file which causes certain programs such as
+.Xr login 1
+and
+.Xr sshd 1
+to refuse new user logins.
+This file is created five minutes before the actual shutdown,
+and removed if anything goes wrong, or right before the shutdown succeeds.
+.sp
+.Sh OPTIONS
+.Bl -column MESSAGE
+.It Fl h Ta Power off the system.
+.It Fl r Ta Reboot the system.
+.It Fl k Ta Don't actually perform the final runlevel change.
+.It Fl c Ta Cancel an ongoing shutdown.
+.It Ar TIME Ta When to perform the shutdown.
+.It Ar MESSAGE Ta Message to send to all users.
+.El
+.Pp
+The
+.Ar TIME
+argument can have several formats.
+The first is the literal string
+.Ic now ,
+meaning immediately.
+The second is a string in the format
+.Em +mm ,
+meaning "in
+.Em mm
+minutes".
+The final is a string in the format
+.Em hh:mm ,
+meaning "on
+.Em hh:mm Ns
+", where
+.Em hh
+is the hour in 24 hour format, and
+.Em mm
+the minute.
+.sp
+.Sh AUTHORS
+.An Shiz Aq Mt hi@shiz.me
+.sp
+.Sh SEE ALSO
+.Xr halt 8 ,
+.Xr nologin 5 ,
+.Xr init 8

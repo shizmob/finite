@@ -38,6 +38,8 @@ install-sysvinit: sysvinit
 	@ln -sf halt.8 $(DESTDIR)/$(MANPREFIX)/share/man/man8/reboot.8
 	@echo [INS] shutdown
 	@install -m 0755 bin/sysvinit-shutdown $(DESTDIR)/$(PREFIX)/sbin/shutdown
+	@echo [MAN] shutdown.8
+	@install -m 0644 src/sysvinit/shutdown.8 $(DESTDIR)/$(MANPREFIX)/share/man/man8
 	@echo [INS] killall5
 	@install -m 0700 bin/sysvinit-killall $(DESTDIR)/$(PREFIX)/sbin/killall5
 	@echo [MAN] killall5.8
