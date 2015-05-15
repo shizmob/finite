@@ -71,7 +71,7 @@ static int killall(int sig)
         FILE *f = fopen(path, "rb");
         if (!f)
             goto next;
-        if (!fgets(buf, BUFSIZ, f))
+        if (!fread(buf, 1, BUFSIZ, f))
             goto next;
 
         /* skip over unwieldy process name */
