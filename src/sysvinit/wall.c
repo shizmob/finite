@@ -95,10 +95,10 @@ void wall(const char *message, ...)
         FILE *f = NULL;
         int fd = open(device, O_WRONLY | O_NOCTTY);
         if (fd < 0 || !isatty(fd))
-            goto end;
+            goto next;
         f = fdopen(fd, "w");
         if (!f)
-            goto end;
+            goto next;
 
         va_list nap;
         va_copy(nap, ap);
@@ -107,7 +107,7 @@ void wall(const char *message, ...)
         fputc('\n', f);
         va_end(nap);
 
-end:
+next:
         if (fd >= 0)
             close(fd);
         if (f)
