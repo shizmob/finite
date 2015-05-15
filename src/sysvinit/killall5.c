@@ -75,7 +75,11 @@ static int killall(int sig)
             goto next;
 
         /* skip over unwieldy process name */
-        const char *p = strrchr(buf, ')') + 2;
+        const char *p = strrchr(buf, ')');
+        if (!p)
+            goto next;
+        p += 2;
+
         int procsid;
         unsigned long startcode, endcode;
         if (sscanf(p, "%*c %*d %*d %d %*d %*d %*u %*u %*u %*u %*u %*u %*u %*d %*d %*d %*d %*d %*d %*u %*u %*d %*u %lu %lu", &procsid, &startcode, &endcode) < 3)
