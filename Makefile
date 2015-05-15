@@ -28,10 +28,14 @@ install-sysvinit: sysvinit
 	@install -m 0644 src/sysvinit/init.8 $(DESTDIR)/$(MANPREFIX)/share/man/man8
 	@echo [INS] halt
 	@install -m 0755 bin/sysvinit-halt $(DESTDIR)/$(PREFIX)/sbin/halt
+	@echo [MAN] halt.8
+	@install -m 0644 src/sysvinit/halt.8 $(DESTDIR)/$(MANPREFIX)/share/man/man8
 	@echo [ LN] poweroff
 	@ln -sf halt $(DESTDIR)/$(PREFIX)/sbin/poweroff
+	@ln -sf halt.8 $(DESTDIR)/$(MANPREFIX)/share/man/man8/poweroff.8
 	@echo [ LN] reboot
 	@ln -sf halt $(DESTDIR)/$(PREFIX)/sbin/reboot
+	@ln -sf halt.8 $(DESTDIR)/$(MANPREFIX)/share/man/man8/reboot.8
 	@echo [INS] shutdown
 	@install -m 0755 bin/sysvinit-shutdown $(DESTDIR)/$(PREFIX)/sbin/shutdown
 	@echo [INS] killall5

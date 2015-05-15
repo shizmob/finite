@@ -1,0 +1,53 @@
+.Dd May 15, 2015
+.Dt HALT 8
+.Os
+.Sh NAME
+.Nm halt, poweroff, reboot
+.Nd change system runlevel
+.sp
+.Sh SYNOPSIS
+.Nm halt
+.Op Fl p
+.Op Fl w
+.Ar RUNLEVEL
+.Nm poweroff
+.Op Fl w
+.Nm reboot
+.Op Fl w
+.sp
+.Sh DESCRIPTION
+.Nm halt
+changes the current runlevel of the system by messaging the
+.Cm init
+process. If invoked as
+.Cm poweroff ,
+it will change the runlevel to
+.Cm 0 .
+If invoked as
+.Cm reboot ,
+it will change the runlevel to
+.Cm 6 .
+Otherwise, unless the
+.Fl p
+flag is specified, a runlevel needs to be given on the command line. Refer to
+.Xr init 8
+for a list of valid runlevels and their meanings.
+.sp
+.Sh OPTIONS
+.Bl -column
+.It Fl p Ta Change to runlevel Cm 0 .
+.It Fl w Ta Don't actually change the runlevel.
+.El
+.sp
+.Sh EXIT VALUE
+.Nm halt
+returns 1 if the given runlevel is invalid or it can not message the
+.Cm init
+process. Otherwise, it returns 0.
+.sp
+.Sh SEE ALSO
+.Xr init 8 ,
+.Xr shutdown 8
+.sp
+.Sh AUTHORS
+.An Shiz Aq Mt hi@shiz.me
