@@ -4,7 +4,6 @@
 .Sh NAME
 .Nm shutdown
 .Nd bring down the system
-.sp
 .Sh SYNOPSIS
 .Nm
 .Op Fl h | Fl r
@@ -12,7 +11,6 @@
 .Op Fl c
 .Ar TIME
 .Op Ar MESSAGE
-.sp
 .Sh DESCRIPTION
 .Nm
 brings the system down in a safe and controlled way: all users are notified and
@@ -49,7 +47,6 @@ and
 to refuse new user logins.
 This file is created five minutes before the actual shutdown,
 and removed if anything goes wrong, or right before the shutdown succeeds.
-.sp
 .Sh OPTIONS
 .Bl -column MESSAGE
 .It Fl h Ta Power off the system.
@@ -80,10 +77,8 @@ meaning "on
 is the hour in 24 hour format, and
 .Em mm
 the minute.
-.sp
 .Sh AUTHORS
 .An Shiz Aq Mt hi@shiz.me
-.sp
 .Sh SEE ALSO
 .Xr halt 8 ,
 .Xr nologin 5 ,

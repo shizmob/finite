@@ -4,11 +4,9 @@
 .Sh NAME
 .Nm init
 .Nd initialize system
-.sp
 .Sh SYNOPSIS
 .Nm
 .Op Cm single | Cm emergency | Cm 0 | Cm 1 | Cm 3 | Cm 6
-.sp
 .Sh DESCRIPTION
 .Nm
 is a somewhat System V-compatible init process implementation.
@@ -21,7 +19,6 @@ When invoked as the first process,
 reads
 .Pa /etc/inittab
 for information on how to bring the system up.
-.sp
 .Ss Runlevels
 A
 .Ic runlevel
@@ -60,7 +57,6 @@ entry.
 If no such entry is found,
 .Nm
 defaults to runlevel 3.
-.sp
 .Ss Initialization
 Having determined the runlevel to start on,
 .Nm
@@ -79,7 +75,6 @@ It will automatically respawn entries marked as
 refer to
 .Xr inittab 5
 for details.
-.sp
 .Ss Changing runlevels
 The current runlevel can be changed at any time, provided the system is not in either runlevel
 .Ic 0
@@ -103,14 +98,12 @@ Similarly, when switching to runlevel
 .Ic 6 ,
 .Nm
 will reboot the system after having executed all entries.
-.sp
 .Ss Shutting down
 The system can be shut down by simply switching to runlevel
 .Ic 0 .
 Similarly, the system can be rebooted by simply switching to runlevel
 .Ic 6 .
 This implementation does not support halting the system.
-.sp
 .Sh ENVIRONMENT
 .Nm
 executes its children with the following environment variables set:
@@ -124,10 +117,8 @@ executes its children with the following environment variables set:
 .It Ev TERM Ta linux
 .It Ev USER Ta root
 .El
-.sp
 .Sh AUTHORS
 .An Shiz Aq Mt hi@shiz.me
-.sp
 .Sh SEE ALSO
 .Xr inittab 5 ,
 .Xr halt 8 ,
