@@ -14,5 +14,3 @@ struct init_task
 };
 
 int parse_tab(const char *file, struct init_task *tasks, unsigned ntasks);
-int parse_runlevels(const char *runlevels);
-int parse_action(const char *action);

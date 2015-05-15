@@ -6,7 +6,7 @@
 #include <errno.h>
 #include <getopt.h>
 #include "init.h"
-#include "inittab.h"
+#include "runlevel.h"
 #include "wall.h"
 
 #define  FIFO_TIMEOUT 5
@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
         }
     }
     if (argv[optind]) {
-        runlevel = parse_runlevels(argv[optind]);
+        runlevel = parse_runlevel(*argv[optind]);
         /* ensure we get exactly one runlevel back */
         if (!runlevel || argv[optind][1]) {
             fprintf(stderr, "%s: not a runlevel: %s\n", name, argv[optind]);
@@ -102,7 +102,7 @@ static int halt(int runlevel, const char *name)
     struct sysv_message msg = { 0 };
     msg.magic     = SYSV_MESSAGE_MAGIC;
     msg.cmd       = SYSV_MESSAGE_RUNLEVEL;
-    msg.runlevel  = runlevel;
+    msg.runlevel  = emit_runlevel(runlevel);
     msg.sleeptime = SYSV_DEFAULT_SLEEP;
     if (write(fd, &msg, sizeof(msg)) != sizeof(msg)) {
         fprintf(stderr, "%s: can't write to %s\n", name, SYSV_FIFO);

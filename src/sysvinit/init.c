@@ -12,8 +12,9 @@
 #include <sys/reboot.h>
 
 #include "../common.h"
-#include "init.h"
 #include "inittab.h"
+#include "runlevel.h"
+#include "init.h"
 
 static void   prepare(void);
 static void   prepare_system(void);
@@ -82,8 +83,8 @@ static int determine_runlevel(char *argv[])
     for (; *argv; argv++)
         if (!strcmp(*argv, "single") || !strcmp(*argv, "emergency"))
             return RUNLEVEL_SINGLE;
-        else if (*argv[0] && !*argv[1] && parse_runlevels(*argv))
-            return parse_runlevels(*argv);
+        else if (*argv[0] && !*argv[1] && parse_runlevel(**argv))
+            return parse_runlevel(**argv);
     return RUNLEVEL_MULTI;
 }
 
@@ -208,9 +209,10 @@ static void handle_communication(void)
             struct sysv_message msg;
             if (read(fifo, &msg, sizeof(msg)) == sizeof(msg) && msg.magic == SYSV_MESSAGE_MAGIC)
                 switch (msg.cmd) {
-                case SYSV_MESSAGE_RUNLEVEL:
-                    if (msg.runlevel != runlevel)
-                        enter_runlevel(msg.runlevel, msg.sleeptime);
+                case SYSV_MESSAGE_RUNLEVEL:;
+                    int newlevel = parse_runlevel(msg.runlevel);
+                    if (newlevel && newlevel != runlevel)
+                        enter_runlevel(newlevel, msg.sleeptime);
                     break;
                 default:
                     /* ??? */

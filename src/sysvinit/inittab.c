@@ -4,7 +4,10 @@
 #include <string.h>
 #include <fcntl.h>
 #include "init.h"
+#include "runlevel.h"
 #include "inittab.h"
+
+static int parse_action(const char *action);
 
 
 /* parse inittab file */
@@ -112,24 +115,7 @@ err:
     return -1;
 }
 
-int parse_runlevels(const char *runlevels)
-{
-    int res = 0;
-
-    for (; *runlevels; runlevels++)
-        if (*runlevels == '0')
-            res |= RUNLEVEL_SHUTDOWN;
-        else if (*runlevels == '1')
-            res |= RUNLEVEL_SINGLE;
-        else if (*runlevels == '3')
-            res |= RUNLEVEL_MULTI;
-        else if (*runlevels == '6')
-            res |= RUNLEVEL_REBOOT;
-
-    return res;
-}
-
-int parse_action(const char *action)
+static int parse_action(const char *action)
 {
     int res = 0;
 
