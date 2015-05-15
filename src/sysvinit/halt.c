@@ -57,8 +57,8 @@ int main(int argc, char *argv[])
     }
     if (argv[optind]) {
         runlevel = parse_runlevels(argv[optind]);
-        /* ensure we only get one runlevel back */
-        if (!runlevel || argv[optind][1] || (runlevel & (runlevel - 1))) {
+        /* ensure we get exactly one runlevel back */
+        if (!runlevel || argv[optind][1]) {
             fprintf(stderr, "%s: not a runlevel: %s\n", name, argv[optind]);
             return 1;
         }
