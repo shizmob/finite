@@ -17,19 +17,19 @@ uninstall:
 
 
 .PHONY: sysvinit install-sysvinit uninstall-sysvinit
-sysvinit: bin/sysvinit bin/sysvinit-halt bin/sysvinit-killall bin/sysvinit-shutdown
+sysvinit: bin/sysvinit bin/sysvinit-halt bin/sysvinit-killall5 bin/sysvinit-shutdown
 
 install-sysvinit: sysvinit
 	@install -d -m 0755 $(DESTDIR)/$(PREFIX)/sbin
 	@install -d -m 0755 $(DESTDIR)/$(MANPREFIX)/share/man/man5
 	@install -d -m 0755 $(DESTDIR)/$(MANPREFIX)/share/man/man8
-	@echo [INS] init
+	@echo [BIN] init
 	@install -m 0700 bin/sysvinit $(DESTDIR)/$(PREFIX)/sbin/init
 	@echo [MAN] init.8
 	@install -m 0644 src/sysvinit/init.8 $(DESTDIR)/$(MANPREFIX)/share/man/man8
 	@echo [MAN] inittab.5
 	@install -m 0644 src/sysvinit/inittab.5 $(DESTDIR)/$(MANPREFIX)/share/man/man5
-	@echo [INS] halt
+	@echo [BIN] halt
 	@install -m 0755 bin/sysvinit-halt $(DESTDIR)/$(PREFIX)/sbin/halt
 	@echo [MAN] halt.8
 	@install -m 0644 src/sysvinit/halt.8 $(DESTDIR)/$(MANPREFIX)/share/man/man8
@@ -39,12 +39,12 @@ install-sysvinit: sysvinit
 	@echo [ LN] reboot
 	@ln -sf halt $(DESTDIR)/$(PREFIX)/sbin/reboot
 	@ln -sf halt.8 $(DESTDIR)/$(MANPREFIX)/share/man/man8/reboot.8
-	@echo [INS] shutdown
+	@echo [BIN] shutdown
 	@install -m 0755 bin/sysvinit-shutdown $(DESTDIR)/$(PREFIX)/sbin/shutdown
 	@echo [MAN] shutdown.8
 	@install -m 0644 src/sysvinit/shutdown.8 $(DESTDIR)/$(MANPREFIX)/share/man/man8
-	@echo [INS] killall5
-	@install -m 0700 bin/sysvinit-killall $(DESTDIR)/$(PREFIX)/sbin/killall5
+	@echo [BIN] killall5
+	@install -m 0700 bin/sysvinit-killall5 $(DESTDIR)/$(PREFIX)/sbin/killall5
 	@echo [MAN] killall5.8
 	@install -m 0644 src/sysvinit/killall5.8 $(DESTDIR)/$(MANPREFIX)/share/man/man8
 
@@ -62,9 +62,9 @@ bin/sysvinit-halt: bin src/sysvinit/halt.o src/sysvinit/inittab.o src/sysvinit/w
 	@echo [ LD] sysvinit-halt
 	@$(CC) $(LDFLAGS) src/sysvinit/halt.o src/sysvinit/inittab.o src/sysvinit/wall.o -o bin/sysvinit-halt
 
-bin/sysvinit-killall: bin src/sysvinit/killall5.o
+bin/sysvinit-killall5: bin src/sysvinit/killall5.o
 	@echo [ LD] sysvinit-killall
-	@$(CC) $(LDFLAGS) src/sysvinit/killall5.o -o bin/sysvinit-killall
+	@$(CC) $(LDFLAGS) src/sysvinit/killall5.o -o bin/sysvinit-killall5
 
 bin/sysvinit-shutdown: bin src/sysvinit/shutdown.o src/sysvinit/wall.o
 	@echo [ LD] sysvinit-shutdown
