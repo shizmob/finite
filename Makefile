@@ -21,11 +21,14 @@ sysvinit: bin/sysvinit bin/sysvinit-halt bin/sysvinit-killall bin/sysvinit-shutd
 
 install-sysvinit: sysvinit
 	@install -d -m 0755 $(DESTDIR)/$(PREFIX)/sbin
+	@install -d -m 0755 $(DESTDIR)/$(MANPREFIX)/share/man/man5
 	@install -d -m 0755 $(DESTDIR)/$(MANPREFIX)/share/man/man8
 	@echo [INS] init
 	@install -m 0700 bin/sysvinit $(DESTDIR)/$(PREFIX)/sbin/init
 	@echo [MAN] init.8
 	@install -m 0644 src/sysvinit/init.8 $(DESTDIR)/$(MANPREFIX)/share/man/man8
+	@echo [MAN] inittab.5
+	@install -m 0644 src/sysvinit/inittab.5 $(DESTDIR)/$(MANPREFIX)/share/man/man5
 	@echo [INS] halt
 	@install -m 0755 bin/sysvinit-halt $(DESTDIR)/$(PREFIX)/sbin/halt
 	@echo [MAN] halt.8

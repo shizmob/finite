@@ -1,0 +1,154 @@
+.Dd May 15, 2015
+.Dt INITTAB 5
+.Os
+.Sh NAME
+.Nm inittab
+.Nd describe the system runlevels
+.Sh DESCRIPTION
+The
+.Pa /etc/inittab
+file is parsed by
+.Xr init 8
+in order to figure out which processes to run for every runlevel.
+An entry in an
+.Nm
+file consists of a line in the following format:
+.Pp
+.D1 Em id : Ns Em runlevels : Ns Em action : Ns Em command
+.Pp
+Empty lines, lines containing only whitespace, lines starting with
+.Ic #
+and invalid entries are ignored.
+The meaning of each field is as follows:
+.Pp
+.Bl -tag -width runlevels
+.It Em id
+A unique identifier for this entry.
+This field is not actually used, but required for legacy compatibility reasons.
+.It Em runlevels
+The runlevels this entry belongs to.
+May contain multiple runlevels, such as
+.Ic 016
+for runlevels 0, 1 and 6.
+Refer to
+.Xr init 8
+for details about runlevels.
+.It Em action
+The kind of action that should be taken for this entry.
+Supported actions are:
+.Bl -tag -width initdefault
+.It Sy off
+Do nothing for this entry.
+All other fields are ignored.
+.It Sy initdefault
+The
+.Em runlevels
+field specifies the default runlevel the system starts as, if none is given otherwise.
+The
+.Em command
+field is ignored.
+.It Sy sysinit
+The
+.Em command
+is ran before
+.Sy boot
+and
+.Sy bootwait
+entries;
+.Cm init
+waits for the command to exit before proceeding.
+The
+.Em runlevels
+field is ignored.
+.It Sy boot
+The
+.Em command
+is ran before
+.Cm init
+switches to the initial runlevel.
+The command is not waited for.
+The
+.Em runlevels
+field is ignored.
+.It Sy bootwait
+Same as
+.Sy boot ,
+except that
+.Cm init
+waits for the command to exit before proceeding.
+.It Sy once
+The
+.Em command
+is ran when
+.Cm init
+switches to one of the runlevels in the
+.Em runlevels
+field.
+The command is not waited for.
+.It Sy wait
+Same as
+.Sy once ,
+except
+.Cm init
+waits for the command to exit before proceeding.
+.It Sy respawn
+Same as
+.Sy once ,
+except
+.Cm init
+re-executes the command when it notices it has exited.
+.El
+.It Em command
+The command to run for this entry, in the form of
+.Cm /bin/command ARG1 ... ARGN .
+This command will be passed to
+.Cm /bin/sh Fl c
+to execute.
+.El
+.Sh EXAMPLES
+A minimal inittab using a separate service manager located at
+.Pa /sbin/rc :
+.Bd -literal -offset Ds
+si::sysinit:/sbin/rc sysinit
+bo::boot:/sbin/rc boot
+bw::bootwait:/sbin/rc bootwait
+
+0:0:wait:/sbin/rc 0
+1:1:wait:/sbin/rc 1
+3:3:wait:/sbin/rc 3
+6:6:wait:/sbin/rc 6
+.Ed
+.Pp
+A more elaborate example with TTY spawning:
+.Bd -literal -offset Ds
+# Run in single-user mode by default.
+id:1:initdefault:
+
+# Initialization.
+si::sysinit:/sbin/rc sysinit
+bo::boot:/sbin/rc boot
+bw::bootwait:/sbin/rc bootwait
+
+# Runlevels.
+1e:1:once:echo Switching to runlevel 1...
+1:1:wait:/sbin/rc 1
+3e:3:once:echo Switching to runlevel 3...
+3:3:wait:/sbin/rc 3
+
+# Shutdown.
+0:0:wait:/sbin/rc 0
+6:6:wait:/sbin/rc 6
+
+# Our 6 TTYs.
+tty1:13:respawn:/sbin/agetty 38400 tty1
+tty2:13:respawn:/sbin/agetty 38400 tty2
+tty3:13:respawn:/sbin/agetty 38400 tty3
+tty4:13:respawn:/sbin/agetty 38400 tty4
+tty5:13:respawn:/sbin/agetty 38400 tty5
+tty6:13:respawn:/sbin/agetty 38400 tty6
+.Ed
+.Sh AUTHORS
+.An Shiz Aq Mt hi@shiz.me
+.Sh SEE ALSO
+.Xr init 8 ,
+.Xr sh 1
