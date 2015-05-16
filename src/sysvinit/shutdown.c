@@ -8,6 +8,7 @@
 #include <sys/stat.h>
 #include <getopt.h>
 #include "init.h"
+#include "runlevel.h"
 #include "wall.h"
 
 #define  PID_FILE       "/var/run/shutdown.pid"
@@ -19,7 +20,6 @@ static int   cancel_shutdown(void);
 static void  cleanup(int signal);
 static int   parse_when(const char *when);
 static int   create_nologin(const char *message);
-static char *sysv_runlevel(int runlevel);
 
 static int   nologin;
 
@@ -100,7 +100,7 @@ int main(int argc, char *argv[])
     /* finally, shutdown - final warning is done by the halt binary */
     cleanup(0);
     if (doit) {
-        char *run = sysv_runlevel(runlevel);
+        char run[2] = { emit_runlevel(runlevel), 0 };
         return execvp("halt", (char *[]) { "halt", run, NULL });
     }
     return 0;
@@ -211,17 +211,4 @@ static int create_nologin(const char *message)
         }
     }
     return 0;
-}
-
-static char *sysv_runlevel(int runlevel)
-{
-    switch (runlevel) {
-    case RUNLEVEL_SINGLE:
-        return "1";
-    case RUNLEVEL_SHUTDOWN:
-        return "0";
-    case RUNLEVEL_REBOOT:
-        return "6";
-    }
-    return NULL;
 }

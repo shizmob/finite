@@ -20,7 +20,7 @@ uninstall:
 
 
 .PHONY: sysvinit install-sysvinit uninstall-sysvinit
-sysvinit: bin/sysvinit bin/sysvinit-halt bin/sysvinit-killall5 bin/sysvinit-shutdown
+sysvinit: bin bin/sysvinit bin/sysvinit-halt bin/sysvinit-killall5 bin/sysvinit-shutdown
 
 install-sysvinit: sysvinit
 	@install -d -m 0755 $(DESTDIR)/$(PREFIX)/sbin
@@ -57,21 +57,21 @@ uninstall-sysvinit:
 	@rm -f $(DESTDIR)/$(MANPREFIX)/share/man/man5/inittab.5
 	@rm -f $(DESTDIR)/$(MANPREFIX)/share/man/man8/{init,halt,poweroff,reboot,shutdown,killall5}.8
 
-bin/sysvinit: bin src/init.o src/common.o src/sysvinit/init.o src/sysvinit/inittab.o src/sysvinit/runlevel.o
+bin/sysvinit: src/init.o src/common.o src/sysvinit/init.o src/sysvinit/inittab.o src/sysvinit/runlevel.o
 	@echo [ LD] sysvinit
-	@$(CC) $(LDFLAGS) src/init.o src/common.o src/sysvinit/init.o src/sysvinit/inittab.o src/sysvinit/runlevel.o -o bin/sysvinit
+	@$(CC) $(LDFLAGS) $^ -o $@
 
-bin/sysvinit-halt: bin src/sysvinit/halt.o src/sysvinit/runlevel.o src/sysvinit/wall.o
+bin/sysvinit-halt: src/sysvinit/halt.o src/sysvinit/runlevel.o src/sysvinit/wall.o
 	@echo [ LD] sysvinit-halt
-	@$(CC) $(LDFLAGS) src/sysvinit/halt.o src/sysvinit/runlevel.o src/sysvinit/wall.o -o bin/sysvinit-halt
+	@$(CC) $(LDFLAGS) $^ -o $@
 
-bin/sysvinit-killall5: bin src/sysvinit/killall5.o
+bin/sysvinit-killall5: src/sysvinit/killall5.o
 	@echo [ LD] sysvinit-killall5
-	@$(CC) $(LDFLAGS) src/sysvinit/killall5.o -o bin/sysvinit-killall5
+	@$(CC) $(LDFLAGS) $^ -o $@
 
-bin/sysvinit-shutdown: bin src/sysvinit/shutdown.o src/sysvinit/wall.o
+bin/sysvinit-shutdown: src/sysvinit/shutdown.o src/sysvinit/runlevel.o src/sysvinit/wall.o
 	@echo [ LD] sysvinit-shutdown
-	@$(CC) $(LDFLAGS) src/sysvinit/shutdown.o src/sysvinit/wall.o -o bin/sysvinit-shutdown
+	@$(CC) $(LDFLAGS) $^ -o $@
 
 
 bin:
