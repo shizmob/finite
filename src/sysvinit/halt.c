@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
-#include <fcntl.h>
 #include <signal.h>
 #include <errno.h>
 #include <getopt.h>
@@ -88,9 +87,10 @@ static int halt(int runlevel, const char *name)
     sigaction(SIGALRM, &act, NULL);
 
     alarm(FIFO_TIMEOUT);
-    int fd = open(SYSV_FIFO, O_WRONLY);
+    FILE *f = fopen(SYSV_FIFO, "w");
     alarm(0);
-    if (fd < 0) {
+
+    if (!f) {
         if (timedout)
             fprintf(stderr, "%s: can't open %s: timed out (%d seconds)\n", name, SYSV_FIFO, FIFO_TIMEOUT);
         else
@@ -104,16 +104,16 @@ static int halt(int runlevel, const char *name)
     msg.cmd       = SYSV_MESSAGE_RUNLEVEL;
     msg.runlevel  = emit_runlevel(runlevel);
     msg.sleeptime = SYSV_DEFAULT_SLEEP;
-    if (write(fd, &msg, sizeof(msg)) != sizeof(msg)) {
+    if (fwrite(&msg, sizeof(msg), 1, f) < 1) {
         fprintf(stderr, "%s: can't write to %s\n", name, SYSV_FIFO);
         goto err;
     }
-    close(fd);
+    fclose(f);
 
     return 0;
 err:
-    if (fd >= 0)
-        close(fd);
+    if (f)
+        fclose(f);
     return 1;
 }
 
