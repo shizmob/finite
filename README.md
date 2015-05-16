@@ -9,7 +9,7 @@ Simply run `make install-sysvinit` to compile and install the sysvinit implement
 
 Restrictions
 ------------
-finite-sysvinit only supports runlevels `0`, `1`, `3` and `6`, mapping to shutdown, single-user, multiuser and reboot respectively. More runlevels should not be needed.
+finite-sysvinit only supports runlevels `0`, `1`, `3` and `6`, mapping to shutdown, single-user, multi-user and reboot respectively. More runlevels should not be needed.
 
 It does not support the `ctrlaltdel`, `kbrequest` or `power*` runlevel actions. Those are better left to other specialized software, not to the init system.
 
