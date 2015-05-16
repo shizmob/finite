@@ -65,7 +65,6 @@ static void prepare(void)
 /* prepare system by running the important commands */
 static void prepare_system(void)
 {
-    /* run preparation commands */
     for (int i = 0; i < ntasks; i++)
         if (tasks[i].action == ACTION_SYSINIT)
             run_task(&tasks[i], 0);
