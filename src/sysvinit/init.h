@@ -46,3 +46,7 @@ enum init_flags
     FLAG_RUNNING      = 0x1, /* started and running */
     FLAG_SPAMMING     = 0x2  /* process is respawning too quickly */
 };
+
+
+#define IS_RUNLEVEL_ACTION(a) ((a) == ACTION_ONCE || (a) == ACTION_WAIT || (a) == ACTION_RESPAWN)
+#define IS_WAIT_ACTION(a)     ((a) == ACTION_SYSINIT || (a) == ACTION_BOOTWAIT || (a) == ACTION_WAIT)

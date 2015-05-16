@@ -99,7 +99,7 @@ static int enter_runlevel(int newlevel, int sleeptime)
     if (oldlevel)
         kill_tasks(oldlevel, sleeptime);
     for (int i = 0; i < ntasks; i++)
-        if ((tasks[i].runlevels & runlevel) && (tasks[i].action == ACTION_ONCE || tasks[i].action == ACTION_WAIT || tasks[i].action == ACTION_RESPAWN))
+        if ((tasks[i].runlevels & runlevel) && IS_RUNLEVEL_ACTION(tasks[i].action))
             run_task(&tasks[i], wait);
 
     /* all commands finished, power down the system */
@@ -117,7 +117,7 @@ static int run_task(struct init_task *task, int wait)
         return 1;
     task->flags |= FLAG_RUNNING;
 
-    wait |= (task->action == ACTION_SYSINIT || task->action == ACTION_BOOTWAIT || task->action == ACTION_WAIT);
+    wait |= IS_WAIT_ACTION(task->action);
 
     pid_t pid = fork();
     switch (pid) {
