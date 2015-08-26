@@ -82,8 +82,8 @@ static int determine_runlevel(char *argv[])
     for (; *argv; argv++)
         if (!strcmp(*argv, "single") || !strcmp(*argv, "emergency"))
             return RUNLEVEL_SINGLE;
-        else if (parse_runlevel(*argv[0]) && !*argv[1])
-            return parse_runlevel(*argv[0]);
+        else if (*argv[0] && !*argv[1] && parse_runlevel(**argv))
+            return parse_runlevel(**argv);
     return RUNLEVEL_MULTI;
 }
 
