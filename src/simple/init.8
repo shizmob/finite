@@ -1,0 +1,53 @@
+.Dd May 13, 2015
+.Dt INIT 8
+.Os
+.Sh NAME
+.Nm init
+.Nd initialize system
+.sp
+.Sh SYNOPSIS
+.Nm
+.Op Cm operands
+.sp
+.Sh DESCRIPTION
+.Nm
+is a simple init process implementation. It takes a command to execute after preparing the system.
+.Pp
+The following operands are available:
+.Pp
+.Bl -column
+.It Cm rc= Ns Pa file Ta Run the given file instead of the default command.
+.El
+.Ss Initialization
+By default
+.Nm
+executes
+.Pa /sbin/rc .
+This can be changed by passing
+.Cm rc= Ns Pa file
+to the kernel command line.
+.Nm
+solely reaps orphaned processes and prepares the system enough
+so that basic commands can be ran sensibly.
+.Nm
+assumes the command knows how to get the system running and how to keep it running.
+If the command exits,
+.Nm
+will respawn it.
+.Ss Considerations
+Unlike some init implementations,
+.Nm
+is not meant to be ran directly by any user.
+It is intended to be ran by the kernel as the first process, upon which it
+.Fn fork Ns s
+itself and the child process prepares the environment and runs
+.Cm rc ,
+whereas the parent process reaps orphaned processes.
+Running
+.Nm
+manually will result in unexpected behaviour that varies by the
+.Cm rc
+implementation used.
+.sp
+.Sh AUTHORS
+.An Shiz Aq Mt hi@shiz.me
