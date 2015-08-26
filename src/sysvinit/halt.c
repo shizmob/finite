@@ -1,14 +1,18 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
-#include <fcntl.h>
+#include <signal.h>
 #include <errno.h>
 #include <getopt.h>
 #include "init.h"
 #include "runlevel.h"
 #include "wall.h"
 
+#define  FIFO_TIMEOUT 5
+
 static int  halt(int runlevel, const char *name);
+static void timeout(int sig);
+static int  timedout;
 
 
 int main(int argc, char *argv[])
@@ -72,10 +76,26 @@ int main(int argc, char *argv[])
 
 static int halt(int runlevel, const char *name)
 {
-    int fd = open(SYSV_FIFO, O_WRONLY | O_NONBLOCK);
-    if (!fd) {
-        fprintf(stderr, "%s: can't open %s: %s\n", name, SYSV_FIFO, errno == EWOULDBLOCK ? "init process not listening" : strerror(errno));
-        return 1;
+    /* open initctl FIFO, make sure we don't hang forever */
+    sigset_t sigs;
+    sigemptyset(&sigs);
+
+    struct sigaction act;
+    act.sa_handler = timeout;
+    act.sa_mask    = sigs;
+    act.sa_flags   = 0;
+    sigaction(SIGALRM, &act, NULL);
+
+    alarm(FIFO_TIMEOUT);
+    FILE *f = fopen(SYSV_FIFO, "w");
+    alarm(0);
+
+    if (!f) {
+        if (timedout)
+            fprintf(stderr, "%s: can't open %s: timed out (%d seconds)\n", name, SYSV_FIFO, FIFO_TIMEOUT);
+        else
+            fprintf(stderr, "%s: can't open %s: %s\n", name, SYSV_FIFO, strerror(errno));
+        goto err;
     }
 
     /* send runlevel message */
@@ -84,12 +104,20 @@ static int halt(int runlevel, const char *name)
     msg.cmd       = SYSV_MESSAGE_RUNLEVEL;
     msg.runlevel  = emit_runlevel(runlevel);
     msg.sleeptime = SYSV_DEFAULT_SLEEP;
-    ssize_t ret   = write(fd, &msg, sizeof(msg));
-    close(fd);
-
-    if (ret != sizeof(msg)) {
+    if (fwrite(&msg, sizeof(msg), 1, f) < 1) {
         fprintf(stderr, "%s: can't write to %s\n", name, SYSV_FIFO);
-        return 1;
+        goto err;
     }
+    fclose(f);
+
     return 0;
+err:
+    if (f)
+        fclose(f);
+    return 1;
+}
+
+static void timeout(int signal)
+{
+    timedout = 1;
 }
