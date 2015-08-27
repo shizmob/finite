@@ -13,7 +13,7 @@ MAN8DIR   = $(MANPREFIX)/share/man/man8
 all: sysvinit simple
 clean:
 	@echo [CLN]
-	@rm -f bin/* src/*.o src/sysvinit/*.o
+	@rm -f bin/* src/*.o src/sysvinit/*.o src/simple/*.o
 distclean: clean
 	@rm -f .manifest-*
 
