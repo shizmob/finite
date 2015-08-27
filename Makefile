@@ -9,8 +9,9 @@ MAN5DIR   = $(MANPREFIX)/share/man/man5
 MAN8DIR   = $(MANPREFIX)/share/man/man8
 
 
-.PHONY: all clean distclean install uninstall
 all: sysvinit simple
+.PHONY: all clean distclean install uninstall
+
 clean:
 	@echo [CLN]
 	@rm -f bin/* src/*.o src/sysvinit/*.o src/simple/*.o
@@ -21,12 +22,15 @@ install: install-sysvinit install-simple
 uninstall: uninstall-sysvinit uninstall-simple
 uninstall-%: .manifest-%
 	@while read -r f ; do echo [ RM] $$(basename "$$f") ; rm -f "$$f" ; done < $<
+
 symlink-%: .manifest-%
 	@while read -r f ; do nf=$$(dirname "$$f")/$$(echo $$(basename "$$f") | cut -d- -f2-) ; echo [ LN] $$(basename "$$nf") ; ln -sf $$(basename "$$f") $$nf ; echo "$$nf" >> .manifest-symlinks ; done < $<
 
 bin $(DESTDIR)$(PREFIX)/sbin $(DESTDIR)$(MAN5DIR) $(DESTDIR)$(MAN8DIR):
 	@install -d -m 0755 $@
 
+
+.SECONDARY:
 
 .PHONY: sysvinit install-sysvinit
 sysvinit: \
@@ -50,11 +54,11 @@ install-sysvinit: \
 bin/sysvinit-init: src/init.o src/common.o src/sysvinit/inittab.o src/sysvinit/runlevel.o
 bin/sysvinit-halt: src/sysvinit/runlevel.o src/sysvinit/wall.o
 bin/sysvinit-shutdown: src/sysvinit/runlevel.o src/sysvinit/wall.o
-bin/sysvinit-%: bin src/sysvinit/%.o
+bin/sysvinit-%: src/sysvinit/%.o | bin
 	@echo [ LD] $(notdir $@)
 	@$(CC) $(LDFLAGS) $(filter-out bin,$^) -o $@
 
-$(DESTDIR)$(PREFIX)/sbin/sysvinit-%: bin/sysvinit-% $(DESTDIR)$(PREFIX)/sbin
+$(DESTDIR)$(PREFIX)/sbin/sysvinit-%: bin/sysvinit-% | $(DESTDIR)$(PREFIX)/sbin
 	@echo [BIN] $(notdir $@)
 	@install -m 0755 $< $@
 	@echo $@ >> .manifest-sysvinit
@@ -64,12 +68,12 @@ $(DESTDIR)$(PREFIX)/sbin/sysvinit-poweroff $(DESTDIR)$(PREFIX)/sbin/sysvinit-reb
 	@ln -s $(notdir $<) $@
 	@echo $@ >> .manifest-sysvinit
 
-$(DESTDIR)$(MAN5DIR)/sysvinit-%.5: src/sysvinit/%.5 $(DESTDIR)$(MAN5DIR)
+$(DESTDIR)$(MAN5DIR)/sysvinit-%.5: src/sysvinit/%.5 | $(DESTDIR)$(MAN5DIR)
 	@echo [MAN] $(notdir $@)
 	@install -m 0644 $< $@
 	@echo $@ >> .manifest-sysvinit
 
-$(DESTDIR)$(MAN8DIR)/sysvinit-%.8: src/sysvinit/%.8 $(DESTDIR)$(MAN8DIR)
+$(DESTDIR)$(MAN8DIR)/sysvinit-%.8: src/sysvinit/%.8 | $(DESTDIR)$(MAN8DIR)
 	@echo [MAN] $(notdir $@)
 	@install -m 0644 $< $@
 	@echo $@ >> .manifest-sysvinit
@@ -82,16 +86,16 @@ install-simple: \
     $(DESTDIR)$(MAN8DIR)/simple-init.8
 
 bin/simple-init: src/init.o src/common.o
-bin/simple-%: bin src/simple/%.o
+bin/simple-%: src/simple/%.o | bin
 	@echo [ LD] $(notdir $@)
 	@$(CC) $(LDFLAGS) $(filter-out bin,$^) -o $@
 
-$(DESTDIR)$(PREFIX)/sbin/simple-%: bin/simple-% $(DESTDIR)$(PREFIX)/sbin
+$(DESTDIR)$(PREFIX)/sbin/simple-%: bin/simple-% | $(DESTDIR)$(PREFIX)/sbin
 	@echo [BIN] $(notdir $@)
 	@install -m 0755 $< $@
 	@echo $@ >> .manifest-simple
 
-$(DESTDIR)$(MAN8DIR)/simple-%.8: src/simple/%.8 $(DESTDIR)$(MAN8DIR)
+$(DESTDIR)$(MAN8DIR)/simple-%.8: src/simple/%.8 | $(DESTDIR)$(MAN8DIR)
 	@echo [MAN] $(notdir $@)
 	@install -m 0644 $< $@
 	@echo $@ >> .manifest-simple
