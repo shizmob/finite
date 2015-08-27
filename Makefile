@@ -20,11 +20,6 @@ distclean: clean
 
 install: install-sysvinit install-simple
 uninstall: uninstall-sysvinit uninstall-simple
-uninstall-%: .manifest-%
-	@while read -r f ; do echo [ RM] $$(basename "$$f") ; rm -f "$$f" ; done < $<
-
-symlink-%: .manifest-%
-	@while read -r f ; do nf=$$(dirname "$$f")/$$(echo $$(basename "$$f") | cut -d- -f2-) ; echo [ LN] $$(basename "$$nf") ; ln -sf $$(basename "$$f") $$nf ; echo "$$nf" >> .manifest-symlinks ; done < $<
 
 bin obj:
 	@mkdir $@
@@ -34,13 +29,20 @@ $(DESTDIR)$(PREFIX)/sbin $(DESTDIR)$(MAN5DIR) $(DESTDIR)$(MAN8DIR):
 
 .SECONDARY:
 
-.PHONY: sysvinit install-sysvinit
+.PHONY: sysvinit install-sysvinit uninstall-sysvinit symlink-sysvinit
 sysvinit: \
     bin/sysvinit-init \
     bin/sysvinit-halt \
     bin/sysvinit-killall5 \
     bin/sysvinit-shutdown
-install-sysvinit: \
+bin/sysvinit-init: obj/init.o obj/common.o obj/sysvinit/inittab.o obj/sysvinit/runlevel.o
+bin/sysvinit-halt: obj/sysvinit/runlevel.o obj/sysvinit/wall.o
+bin/sysvinit-shutdown: obj/sysvinit/runlevel.o obj/sysvinit/wall.o
+bin/sysvinit-%: obj/sysvinit/%.o | bin
+	@echo [ LD] $(notdir $@)
+	@$(CC) $(LDFLAGS) $^ -o $@
+
+SYSVINIT= \
     $(DESTDIR)$(PREFIX)/sbin/sysvinit-init \
     $(DESTDIR)$(MAN8DIR)/sysvinit-init.8 \
     $(DESTDIR)$(PREFIX)/sbin/sysvinit-halt \
@@ -52,45 +54,44 @@ install-sysvinit: \
     $(DESTDIR)$(PREFIX)/sbin/sysvinit-shutdown \
     $(DESTDIR)$(MAN8DIR)/sysvinit-shutdown.8 \
     $(DESTDIR)$(MAN5DIR)/sysvinit-inittab.5
-
-bin/sysvinit-init: obj/init.o obj/common.o obj/sysvinit/inittab.o obj/sysvinit/runlevel.o
-bin/sysvinit-halt: obj/sysvinit/runlevel.o obj/sysvinit/wall.o
-bin/sysvinit-shutdown: obj/sysvinit/runlevel.o obj/sysvinit/wall.o
-bin/sysvinit-%: obj/sysvinit/%.o | bin
-	@echo [ LD] $(notdir $@)
-	@$(CC) $(LDFLAGS) $^ -o $@
+install-sysvinit: $(SYSVINIT)
+uninstall-sysvinit:
+	@rm -f $(SYSVINIT)
+symlink-sysvinit: $(SYSVINIT)
+	@echo $(SYSVINIT) | while read -r f ; do nf=$$(dirname "$$f")/$$(echo $$(basename "$$f") | cut -d- -f2-) ; echo [ LN] $$(basename "$$nf") ; ln -sf $$(basename "$$f") $$nf  ; done
 
 $(DESTDIR)$(PREFIX)/sbin/sysvinit-%: bin/sysvinit-% | $(DESTDIR)$(PREFIX)/sbin
 	@echo [BIN] $(notdir $@)
 	@install -m 0755 $< $@
-	@echo $@ >> .manifest-sysvinit
 
 $(DESTDIR)$(PREFIX)/sbin/sysvinit-poweroff $(DESTDIR)$(PREFIX)/sbin/sysvinit-reboot: $(DESTDIR)$(PREFIX)/sbin/sysvinit-halt
 	@echo [ LN] $(notdir $@)
 	@ln -s $(notdir $<) $@
-	@echo $@ >> .manifest-sysvinit
 
 $(DESTDIR)$(MAN5DIR)/sysvinit-%.5: src/sysvinit/%.5 | $(DESTDIR)$(MAN5DIR)
 	@echo [MAN] $(notdir $@)
 	@install -m 0644 $< $@
-	@echo $@ >> .manifest-sysvinit
 
 $(DESTDIR)$(MAN8DIR)/sysvinit-%.8: src/sysvinit/%.8 | $(DESTDIR)$(MAN8DIR)
 	@echo [MAN] $(notdir $@)
 	@install -m 0644 $< $@
-	@echo $@ >> .manifest-sysvinit
 
 
-.PHONY: simple install-simple
+.PHONY: simple install-simple uninstall-simple symlink-simple
 simple: bin/simple-init
-install-simple: \
-    $(DESTDIR)$(PREFIX)/sbin/simple-init \
-    $(DESTDIR)$(MAN8DIR)/simple-init.8
-
 bin/simple-init: obj/init.o obj/common.o
 bin/simple-%: obj/simple/%.o | bin
 	@echo [ LD] $(notdir $@)
 	@$(CC) $(LDFLAGS) $^ -o $@
+
+SIMPLE= \
+    $(DESTDIR)$(PREFIX)/sbin/simple-init \
+    $(DESTDIR)$(MAN8DIR)/simple-init.8
+install-simple: $(SIMPLE)
+uninstall-simple:
+	@rm -f $(SIMPLE)
+symlink-simple: $(SIMPLE)
+	@echo $(SIMPLE) | while read -r f ; do nf=$$(dirname "$$f")/$$(echo $$(basename "$$f") | cut -d- -f2-) ; echo [ LN] $$(basename "$$nf") ; ln -sf $$(basename "$$f") $$nf ; done
 
 $(DESTDIR)$(PREFIX)/sbin/simple-%: bin/simple-% | $(DESTDIR)$(PREFIX)/sbin
 	@echo [BIN] $(notdir $@)
