@@ -15,7 +15,7 @@
 #define  NOLOGIN_FILE   "/etc/nologin"
 #define  NOLOGIN_CUTOFF 300
 
-static void  setup_shutdown(void);
+static int   setup_shutdown(void);
 static int   cancel_shutdown(void);
 static void  cleanup(int signal);
 static int   parse_when(const char *when);
@@ -110,7 +110,7 @@ err:
 }
 
 /* setup signal handlers and write PID file */
-static void setup_shutdown(void)
+static int setup_shutdown(void)
 {
     sigset_t sigs;
     sigemptyset(&sigs);
@@ -124,17 +124,24 @@ static void setup_shutdown(void)
     sigaction(SIGQUIT, &act, NULL);
     sigaction(SIGTERM, &act, NULL);
 
-    FILE *f = fopen(PID_FILE, "w");
-    if (!f) {
+    int fd = open(PID_FILE, O_WRONLY);
+    if (fd < 0) {
         perror("shutdown: no instance running");
-        return;
+        goto err;
     }
 
     pid_t pid = getpid();
-    if (fprintf(f, "%d", pid) <= 0)
+    if (dprintf(fd, "%d", pid) <= 0) {
         perror("shutdown: could not write PID file");
+        goto err;
+    }
 
-    fclose(f);
+    close(fd);
+    return 0;
+err:
+    if (fd >= 0)
+        close(fd);
+    return 1;
 }
 
 /* signal existing shutdown process to stop */

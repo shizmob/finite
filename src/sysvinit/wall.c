@@ -71,7 +71,7 @@ void wall(const char *message, ...)
         if (*p == '\n')
             *p = 0;
 
-    /* finally, start writing messages */
+    /* finally, start writing messages: find devices to write to */
     va_list ap;
     va_start(ap, message);
 
@@ -81,7 +81,7 @@ void wall(const char *message, ...)
         if (u->ut_type != USER_PROCESS)
             continue;
 
-        /* device does not always start with /dev/ */
+        /* device does not always start with /dev/, add if necessary */
         char device[32];
         if (strncmp(u->ut_line, "/dev/", sizeof("/dev/") - 1)) {
             strncpy(device, "/dev/", sizeof(device) - 1);
@@ -91,26 +91,19 @@ void wall(const char *message, ...)
         strncat(device, u->ut_line, sizeof(device) - 1);
         device[sizeof(device) - 1] = 0;
 
-        FILE *f = NULL;
         int fd = open(device, O_WRONLY | O_NOCTTY);
         if (fd < 0 || !isatty(fd))
-            goto next;
-        f = fdopen(fd, "w");
-        if (!f)
             goto next;
 
         va_list nap;
         va_copy(nap, ap);
-        fprintf(f, "\a\nBroadcast message from %s@%s(%s) at %s:\n", username, hostname, tty, tm);
-        vfprintf(f, message, nap);
-        fputc('\n', f);
+        dprintf(fd, "\a\nBroadcast message from %s@%s(%s) at %s:\n", username, hostname, tty, tm);
+        vdprintf(fd, message, nap);
         va_end(nap);
 
 next:
         if (fd >= 0)
             close(fd);
-        if (f)
-            fclose(f);
     }
     endutxent();
 
