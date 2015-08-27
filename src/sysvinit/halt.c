@@ -87,11 +87,12 @@ static int halt(int runlevel, const char *name)
     act.sa_flags   = 0;
     sigaction(SIGALRM, &act, NULL);
 
+    int fd = -1;
     alarm(FIFO_TIMEOUT);
-    int fd = open(SYSV_FIFO, O_WRONLY);
+    fd = open(SYSV_FIFO, O_WRONLY);
     alarm(0);
 
-    if (!f) {
+    if (fd < 0) {
         if (timedout)
             fprintf(stderr, "%s: can't open %s: timed out (%d seconds)\n", name, SYSV_FIFO, FIFO_TIMEOUT);
         else
