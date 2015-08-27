@@ -22,7 +22,7 @@ uninstall: uninstall-sysvinit uninstall-simple
 uninstall-%: .manifest-%
 	@while read -r f ; do echo [ RM] $$(basename "$$f") ; rm -f "$$f" ; done < $<
 symlink-%: .manifest-%
-	@while read -r f ; do nf=$$(dirname "$$f")/$$(echo $$(basename "$$f") | cut -d- -f2-) ; echo [ LN] $$(basename "$$nf") ; ln -sf $$(basename "$$f") $$nf ; done < $<
+	@while read -r f ; do nf=$$(dirname "$$f")/$$(echo $$(basename "$$f") | cut -d- -f2-) ; echo [ LN] $$(basename "$$nf") ; ln -sf $$(basename "$$f") $$nf ; echo "$$nf" >> .manifest-symlinks ; done < $<
 
 bin $(DESTDIR)$(PREFIX)/sbin $(DESTDIR)$(MAN5DIR) $(DESTDIR)$(MAN8DIR):
 	@install -d -m 0755 $@

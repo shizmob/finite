@@ -1,11 +1,20 @@
 finite
 ======
 
-finite is an init implementation that strives to be robust, correct and simple. Currently it implements a somewhat sysvinit-compatible init, but a new simpler streamlined init is planned for the future.
+finite is an init implementation that strives to be robust, correct and simple.  
+Currently it implements a somewhat sysvinit-compatible init (`src/sysvinit`) and a simpler respawning init (`src/simple`).
 
 Installation
 ------------
-Simply run `make install-sysvinit` to compile and install the sysvinit implementation to your system. This installs /sbin/init, /sbin/halt (and its reboot and poweroff symlinks), /sbin/killall5 and their respective manpages.
+Simply run `make install-sysvinit` to compile and install the sysvinit implementation to your system.
+This installs `/sbin/sysvinit-init`, `/sbin/sysvinit-halt` (and its `reboot` and `poweroff` symlinks), `/sbin/sysvinit-killall5` and their respective manpages.
+
+For the simple init implementation, run `make install-simple`. This installs `/sbin/simple-init` and its manpage.
+
+To symlink any implementation to the classic non-prefixed binaries, run `make symlink-<implementation>`, for instance `make symlink-sysvinit`.
+To remove these symlinks again, run `make uninstall-symlinks`.
+
+To uninstall an implementation, simply run `make uninstall-<implementation>`, for instance `make uninstall-sysvinit`.
 
 Restrictions
 ------------
