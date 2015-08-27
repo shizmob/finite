@@ -8,27 +8,27 @@ MANPREFIX = $(if $(subst /,,$(PREFIX)),$(PREFIX),/usr)
 MAN5DIR   = $(MANPREFIX)/share/man/man5
 MAN8DIR   = $(MANPREFIX)/share/man/man8
 
-.PHONY: all clean install uninstall
-all: sysvinit simple
 
+.PHONY: all clean distclean install uninstall
+all: sysvinit simple
 clean:
 	@echo [CLN]
-	@rm -rf bin/* src/*.o src/sysvinit/*.o
+	@rm -f bin/* src/*.o src/sysvinit/*.o
+distclean: clean
+	@rm -f .manifest-*
 
-install: install-sysvinit
-uninstall: uninstall-sysvinit
+install: install-sysvinit install-simple
+uninstall: uninstall-sysvinit uninstall-simple
 uninstall-%: .manifest-%
-	@cat $< | xargs -t rm -f
-symlink-%: .manifest-% install-%
-	@while read -r f ; do nf=$$(echo "$$f" | cut -d- -f2-) ; echo [ LN] $$(basename "$$nf") ; ln -s $$(basename "$$f") $$nf ; done < $<
-.manifest-%:
-	@touch $@
+	@while read -r f ; do echo [ RM] $$(basename "$$f") ; rm -f "$$f" ; done < $<
+symlink-%: .manifest-%
+	@while read -r f ; do nf=$$(dirname "$$f")/$$(echo $$(basename "$$f") | cut -d- -f2-) ; echo [ LN] $$(basename "$$nf") ; ln -sf $$(basename "$$f") $$nf ; done < $<
 
 bin $(DESTDIR)$(PREFIX)/sbin $(DESTDIR)$(MAN5DIR) $(DESTDIR)$(MAN8DIR):
 	@install -d -m 0755 $@
 
 
-.PHONY: sysvinit install-sysvinit uninstall-sysvinit symlink-sysvinit
+.PHONY: sysvinit install-sysvinit
 sysvinit: \
     bin/sysvinit-init \
     bin/sysvinit-halt \
@@ -75,7 +75,7 @@ $(DESTDIR)$(MAN8DIR)/sysvinit-%.8: src/sysvinit/%.8 $(DESTDIR)$(MAN8DIR)
 	@echo $@ >> .manifest-sysvinit
 
 
-.PHONY: simple install-simple uninstall-simple symlink-simple
+.PHONY: simple install-simple
 simple: bin/simple-init
 install-simple: \
     $(DESTDIR)$(PREFIX)/sbin/simple-init \
