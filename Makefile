@@ -16,7 +16,6 @@ clean:
 	@echo [CLN]
 	@rm -rf bin obj
 distclean: clean
-	@rm -f .manifest-*
 
 install: install-sysvinit install-simple
 uninstall: uninstall-sysvinit uninstall-simple
