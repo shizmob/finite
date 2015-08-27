@@ -14,7 +14,7 @@ all: sysvinit simple
 
 clean:
 	@echo [CLN]
-	@rm -f bin/* src/*.o src/sysvinit/*.o src/simple/*.o
+	@rm -rf bin obj
 distclean: clean
 	@rm -f .manifest-*
 
@@ -26,7 +26,9 @@ uninstall-%: .manifest-%
 symlink-%: .manifest-%
 	@while read -r f ; do nf=$$(dirname "$$f")/$$(echo $$(basename "$$f") | cut -d- -f2-) ; echo [ LN] $$(basename "$$nf") ; ln -sf $$(basename "$$f") $$nf ; echo "$$nf" >> .manifest-symlinks ; done < $<
 
-bin $(DESTDIR)$(PREFIX)/sbin $(DESTDIR)$(MAN5DIR) $(DESTDIR)$(MAN8DIR):
+bin obj:
+	@mkdir $@
+$(DESTDIR)$(PREFIX)/sbin $(DESTDIR)$(MAN5DIR) $(DESTDIR)$(MAN8DIR):
 	@install -d -m 0755 $@
 
 
@@ -51,12 +53,12 @@ install-sysvinit: \
     $(DESTDIR)$(MAN8DIR)/sysvinit-shutdown.8 \
     $(DESTDIR)$(MAN5DIR)/sysvinit-inittab.5
 
-bin/sysvinit-init: src/init.o src/common.o src/sysvinit/inittab.o src/sysvinit/runlevel.o
-bin/sysvinit-halt: src/sysvinit/runlevel.o src/sysvinit/wall.o
-bin/sysvinit-shutdown: src/sysvinit/runlevel.o src/sysvinit/wall.o
-bin/sysvinit-%: src/sysvinit/%.o | bin
+bin/sysvinit-init: obj/init.o obj/common.o obj/sysvinit/inittab.o obj/sysvinit/runlevel.o
+bin/sysvinit-halt: obj/sysvinit/runlevel.o obj/sysvinit/wall.o
+bin/sysvinit-shutdown: obj/sysvinit/runlevel.o obj/sysvinit/wall.o
+bin/sysvinit-%: obj/sysvinit/%.o | bin
 	@echo [ LD] $(notdir $@)
-	@$(CC) $(LDFLAGS) $(filter-out bin,$^) -o $@
+	@$(CC) $(LDFLAGS) $^ -o $@
 
 $(DESTDIR)$(PREFIX)/sbin/sysvinit-%: bin/sysvinit-% | $(DESTDIR)$(PREFIX)/sbin
 	@echo [BIN] $(notdir $@)
@@ -85,10 +87,10 @@ install-simple: \
     $(DESTDIR)$(PREFIX)/sbin/simple-init \
     $(DESTDIR)$(MAN8DIR)/simple-init.8
 
-bin/simple-init: src/init.o src/common.o
-bin/simple-%: src/simple/%.o | bin
+bin/simple-init: obj/init.o obj/common.o
+bin/simple-%: obj/simple/%.o | bin
 	@echo [ LD] $(notdir $@)
-	@$(CC) $(LDFLAGS) $(filter-out bin,$^) -o $@
+	@$(CC) $(LDFLAGS) $^ -o $@
 
 $(DESTDIR)$(PREFIX)/sbin/simple-%: bin/simple-% | $(DESTDIR)$(PREFIX)/sbin
 	@echo [BIN] $(notdir $@)
@@ -101,7 +103,7 @@ $(DESTDIR)$(MAN8DIR)/simple-%.8: src/simple/%.8 | $(DESTDIR)$(MAN8DIR)
 	@echo $@ >> .manifest-simple
 
 
-%.o: %.c
+obj/%.o: src/%.c | obj
+	@mkdir -p $(@D)
 	@echo [ CC] $^
 	@$(CC) $(CPPFLAGS) $(CFLAGS) -c $^ -o $@
-
