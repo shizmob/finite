@@ -1,83 +1,85 @@
-CFLAGS  =-std=c99 -Wall -Wextra -pedantic -Wno-unused-parameter -fPIC
-CPPFLAGS=-D_XOPEN_SOURCE=700
-LDFLAGS =-pie -Wl,-z,relro -Wl,-z,now
+CFLAGS    = -std=c99 -Wall -Wextra -pedantic -Wno-unused-parameter -fPIC
+CPPFLAGS  = -D_XOPEN_SOURCE=700
+LDFLAGS   = -pie -Wl,-z,relro -Wl,-z,now
 
-DESTDIR=
-PREFIX=
-MANPREFIX=$(if $(subst /,,$(PREFIX)),$(PREFIX),/usr)
-
+DESTDIR   =
+PREFIX    =
+MANPREFIX = $(if $(subst /,,$(PREFIX)),$(PREFIX),/usr)
+MAN5DIR   = $(MANPREFIX)/share/man/man5
+MAN8DIR   = $(MANPREFIX)/share/man/man8
 
 .PHONY: all clean install uninstall
-all:
+all: sysvinit
 
 clean:
 	@echo [CLN]
 	@rm -rf bin/* src/*.o src/sysvinit/*.o
 
-install:
-
-uninstall:
+install: install-sysvinit
+uninstall: uninstall-sysvinit
 
 
 .PHONY: sysvinit install-sysvinit uninstall-sysvinit
-sysvinit: bin bin/sysvinit bin/sysvinit-halt bin/sysvinit-killall5 bin/sysvinit-shutdown
+sysvinit: \
+    bin/sysvinit-init \
+    bin/sysvinit-halt \
+    bin/sysvinit-killall5 \
+    bin/sysvinit-shutdown
+install-sysvinit: \
+    $(DESTDIR)$(PREFIX)/sbin/init \
+    $(DESTDIR)$(MAN8DIR)/init.8 \
+    $(DESTDIR)$(PREFIX)/sbin/halt \
+    $(DESTDIR)$(PREFIX)/sbin/poweroff \
+    $(DESTDIR)$(PREFIX)/sbin/reboot \
+    $(DESTDIR)$(MAN8DIR)/halt.8 \
+    $(DESTDIR)$(PREFIX)/sbin/killall5 \
+    $(DESTDIR)$(MAN8DIR)/killall5.8 \
+    $(DESTDIR)$(PREFIX)/sbin/shutdown \
+    $(DESTDIR)$(MAN8DIR)/shutdown.8 \
+    $(DESTDIR)$(MAN5DIR)/inittab.5
 
-install-sysvinit: sysvinit
-	@install -d -m 0755 $(DESTDIR)/$(PREFIX)/sbin
-	@install -d -m 0755 $(DESTDIR)/$(MANPREFIX)/share/man/man5
-	@install -d -m 0755 $(DESTDIR)/$(MANPREFIX)/share/man/man8
-	@echo [BIN] init
-	@install -m 0700 bin/sysvinit $(DESTDIR)/$(PREFIX)/sbin/init
-	@echo [MAN] init.8
-	@install -m 0644 src/sysvinit/init.8 $(DESTDIR)/$(MANPREFIX)/share/man/man8
-	@echo [MAN] inittab.5
-	@install -m 0644 src/sysvinit/inittab.5 $(DESTDIR)/$(MANPREFIX)/share/man/man5
-	@echo [BIN] halt
-	@install -m 0755 bin/sysvinit-halt $(DESTDIR)/$(PREFIX)/sbin/halt
-	@echo [MAN] halt.8
-	@install -m 0644 src/sysvinit/halt.8 $(DESTDIR)/$(MANPREFIX)/share/man/man8
-	@echo [ LN] poweroff
-	@ln -sf halt $(DESTDIR)/$(PREFIX)/sbin/poweroff
-	@ln -sf halt.8 $(DESTDIR)/$(MANPREFIX)/share/man/man8/poweroff.8
-	@echo [ LN] reboot
-	@ln -sf halt $(DESTDIR)/$(PREFIX)/sbin/reboot
-	@ln -sf halt.8 $(DESTDIR)/$(MANPREFIX)/share/man/man8/reboot.8
-	@echo [BIN] shutdown
-	@install -m 0755 bin/sysvinit-shutdown $(DESTDIR)/$(PREFIX)/sbin/shutdown
-	@echo [MAN] shutdown.8
-	@install -m 0644 src/sysvinit/shutdown.8 $(DESTDIR)/$(MANPREFIX)/share/man/man8
-	@echo [BIN] killall5
-	@install -m 0700 bin/sysvinit-killall5 $(DESTDIR)/$(PREFIX)/sbin/killall5
-	@echo [MAN] killall5.8
-	@install -m 0644 src/sysvinit/killall5.8 $(DESTDIR)/$(MANPREFIX)/share/man/man8
+uninstall-sysvinit: .manifest-sysvinit
+	@cat .manifest-sysvinit | xargs -t rm -f
 
-uninstall-sysvinit:
-	@echo [UNS] sysvinit
-	@rm -f $(DESTDIR)/$(PREFIX)/sbin/{init,halt,poweroff,reboot,shutdown,killall5}
-	@rm -f $(DESTDIR)/$(MANPREFIX)/share/man/man5/inittab.5
-	@rm -f $(DESTDIR)/$(MANPREFIX)/share/man/man8/{init,halt,poweroff,reboot,shutdown,killall5}.8
+.manifest-sysvinit:
+	@touch $@
 
-bin/sysvinit: src/init.o src/common.o src/sysvinit/init.o src/sysvinit/inittab.o src/sysvinit/runlevel.o
-	@echo [ LD] sysvinit
-	@$(CC) $(LDFLAGS) $^ -o $@
 
-bin/sysvinit-halt: src/sysvinit/halt.o src/sysvinit/runlevel.o src/sysvinit/wall.o
-	@echo [ LD] sysvinit-halt
-	@$(CC) $(LDFLAGS) $^ -o $@
+bin/sysvinit-init: src/init.o src/common.o src/sysvinit/inittab.o src/sysvinit/runlevel.o
+bin/sysvinit-halt: src/sysvinit/runlevel.o src/sysvinit/wall.o
+bin/sysvinit-shutdown: src/sysvinit/runlevel.o src/sysvinit/wall.o
+bin/sysvinit-%: bin src/sysvinit/%.o
+	@echo [ LD] $(notdir $@)
+	@$(CC) $(LDFLAGS) $(filter-out bin,$^) -o $@
 
-bin/sysvinit-killall5: src/sysvinit/killall5.o
-	@echo [ LD] sysvinit-killall5
-	@$(CC) $(LDFLAGS) $^ -o $@
+$(DESTDIR)$(PREFIX)/sbin $(DESTDIR)$(MAN5DIR) $(DESTDIR)$(MAN8DIR):
+	@install -d -m 0755 $@
 
-bin/sysvinit-shutdown: src/sysvinit/shutdown.o src/sysvinit/runlevel.o src/sysvinit/wall.o
-	@echo [ LD] sysvinit-shutdown
-	@$(CC) $(LDFLAGS) $^ -o $@
+$(DESTDIR)$(PREFIX)/sbin/%: bin/sysvinit-% $(DESTDIR)$(PREFIX)/sbin
+	@echo [BIN] $(notdir $@)
+	@install -m 0755 $< $@
+	@echo $@ >> .manifest-sysvinit
+
+$(DESTDIR)$(PREFIX)/sbin/poweroff $(DESTDIR)$(PREFIX)/sbin/reboot: $(DESTDIR)$(PREFIX)/sbin/halt
+	@echo [ LN] $(notdir $@)
+	@ln -s $(notdir $<) $@
+	@echo $@ >> .manifest-sysvinit
+
+$(DESTDIR)$(MAN5DIR)/%.5: src/sysvinit/%.5 $(DESTDIR)$(MAN5DIR)
+	@echo [MAN] $(notdir $@)
+	@install -m 0644 $< $@
+	@echo $@ >> .manifest-sysvinit
+
+$(DESTDIR)$(MAN8DIR)/%.8: src/sysvinit/%.8 $(DESTDIR)$(MAN8DIR)
+	@echo [MAN] $(notdir $@)
+	@install -m 0644 $< $@
+	@echo $@ >> .manifest-sysvinit
 
 
 bin:
-	@echo [ MK] bin/
 	@mkdir bin
 
 %.o: %.c
-	@echo [ CC] $<
-	@$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
+	@echo [ CC] $^
+	@$(CC) $(CPPFLAGS) $(CFLAGS) -c $^ -o $@
+
