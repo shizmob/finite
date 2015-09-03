@@ -1,21 +1,28 @@
+#include <stdlib.h>
 #include <unistd.h>
 #include <signal.h>
 #include <sys/wait.h>
+#include "common.h"
 
 static void  reap(char *argv[]);
 static pid_t spawn(char *argv[]);
-
 extern void  init(char *argv[]);
 
 
 int main(int argc, char *argv[])
 {
-    if (getpid() == 1)
+    const char *name = getenv("PROCNAME");
+    if (name && *name)
+        setprocname(name, argv[0]);
+
+    if (getpid() == 1) {
         /* parent process */
         reap(argv);
-    else
+    } else {
         /* child process */
+        prepare_env();
         init(argv + 1);
+    }
     return 1;
 }
 

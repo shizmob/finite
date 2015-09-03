@@ -11,7 +11,6 @@
 #include <sys/ioctl.h>
 #include <sys/reboot.h>
 
-#include "../common.h"
 #include "inittab.h"
 #include "runlevel.h"
 #include "init.h"
@@ -34,14 +33,11 @@ static int    reappipe[2];
 
 void init(char *argv[])
 {
-    int level;
     prepare();
-    prepare_env();
-
     ntasks = parse_tab(INITTAB_FILE, tasks, sizeof(tasks) / sizeof(*tasks));
     prepare_system();
 
-    level = determine_runlevel(argv);
+    int level = determine_runlevel(argv);
     enter_runlevel(level, SYSV_DEFAULT_SLEEP);
 
     handle_communication();

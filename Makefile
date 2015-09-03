@@ -28,6 +28,9 @@ $(DESTDIR)$(PREFIX)/sbin $(DESTDIR)$(MAN5DIR) $(DESTDIR)$(MAN8DIR):
 
 .SECONDARY:
 
+obj/init.o: src/common.h
+
+
 .PHONY: sysvinit install-sysvinit uninstall-sysvinit symlink-sysvinit
 sysvinit: \
     bin/sysvinit-init \

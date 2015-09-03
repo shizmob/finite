@@ -20,3 +20,11 @@ void prepare_env(void)
     setenv("TERM",    DEFAULT_TERM,   0);
     setenv("USER",    DEFAULT_USER,   0);
 }
+
+/* set process name */
+void setprocname(const char *name, const char *argv0)
+{
+    prctl(PR_SET_NAME, name);
+    while (*argv0 && *name) *argv0++ = *name++;
+    while (*argv0) *argv0++ = 0;
+}
