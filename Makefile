@@ -107,6 +107,6 @@ $(DESTDIR)$(MAN8DIR)/simple-%.8: src/simple/%.8 | $(DESTDIR)$(MAN8DIR)
 
 
 obj/%.o: src/%.c | obj
-	@mkdir -p $(@D)
+	@mkdir -p $(dir $(@))
 	@echo [ CC] $^
 	@$(CC) $(CPPFLAGS) $(CFLAGS) -c $^ -o $@
