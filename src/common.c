@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/stat.h>
+#include <sys/prctl.h>
 #include "common.h"
 
 /* get us into a somewhat sane environment */
