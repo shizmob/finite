@@ -60,7 +60,7 @@ install-sysvinit: $(SYSVINIT)
 uninstall-sysvinit:
 	@rm -f $(SYSVINIT)
 symlink-sysvinit: $(SYSVINIT)
-	@echo $(SYSVINIT) | while read -r f ; do nf=$$(dirname "$$f")/$$(echo $$(basename "$$f") | cut -d- -f2-) ; echo [ LN] $$(basename "$$nf") ; ln -sf $$(basename "$$f") $$nf  ; done
+	@for f in $(SYSVINIT) ; do nf=$$(dirname "$$f")/$$(echo $$(basename "$$f") | cut -d- -f2-) ; echo [ LN] $$(basename "$$nf") ; ln -sf $$(basename "$$f") $$nf  ; done
 
 $(DESTDIR)$(PREFIX)/sbin/sysvinit-%: bin/sysvinit-% | $(DESTDIR)$(PREFIX)/sbin
 	@echo [BIN] $(notdir $@)
@@ -93,7 +93,7 @@ install-simple: $(SIMPLE)
 uninstall-simple:
 	@rm -f $(SIMPLE)
 symlink-simple: $(SIMPLE)
-	@echo $(SIMPLE) | while read -r f ; do nf=$$(dirname "$$f")/$$(echo $$(basename "$$f") | cut -d- -f2-) ; echo [ LN] $$(basename "$$nf") ; ln -sf $$(basename "$$f") $$nf ; done
+	@for f in $(SIMPLE) ; do nf=$$(dirname "$$f")/$$(echo $$(basename "$$f") | cut -d- -f2-) ; echo [ LN] $$(basename "$$nf") ; ln -sf $$(basename "$$f") $$nf ; done
 
 $(DESTDIR)$(PREFIX)/sbin/simple-%: bin/simple-% | $(DESTDIR)$(PREFIX)/sbin
 	@echo [BIN] $(notdir $@)
@@ -109,4 +109,4 @@ $(DESTDIR)$(MAN8DIR)/simple-%.8: src/simple/%.8 | $(DESTDIR)$(MAN8DIR)
 obj/%.o: src/%.c | obj
 	@mkdir -p $(dir $(@))
 	@echo [ CC] $^
-	@$(CC) $(CPPFLAGS) $(CFLAGS) -c $^ -o $@
+	@$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@

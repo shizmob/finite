@@ -23,7 +23,7 @@ void prepare_env(void)
 }
 
 /* set process name */
-void setprocname(const char *name, const char *argv0)
+void setprocname(const char *name, char *argv0)
 {
     prctl(PR_SET_NAME, name);
     while (*argv0 && *name) *argv0++ = *name++;

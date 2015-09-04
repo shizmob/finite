@@ -5,4 +5,4 @@
 #define DEFAULT_USER  "root"
 
 void prepare_env(void);
-void setprocname(const char *name, const char *argv0);
+void setprocname(const char *name, char *argv0);
