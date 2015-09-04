@@ -5,9 +5,10 @@
 #include <sys/wait.h>
 #include "common.h"
 
-static void  reap(char *argv[]);
-static pid_t spawn(char *argv[]);
-extern void  init(char *argv[]);
+static sigset_t    prepsigs(void);
+static void        reap(char *argv[]);
+static pid_t       spawn(char *argv[]);
+extern void        init(char *argv[]);
 
 static const char *path;
 
@@ -30,19 +31,29 @@ int main(int argc, char *argv[])
     return 1;
 }
 
-static void reap(char *argv[])
+static sigset_t prepsigs(void)
 {
     sigset_t sigs;
-    sigfillset(&sigs);
-    sigdelset(&sigs, SIGINT);
-    sigdelset(&sigs, SIGHUP);
-    sigdelset(&sigs, SIGCHLD);
-    sigprocmask(SIG_BLOCK, &sigs, 0);
-
     sigemptyset(&sigs);
     sigaddset(&sigs, SIGINT);
     sigaddset(&sigs, SIGHUP);
-    sigaddset(&sigs, SIGCHILD);
+    sigaddset(&sigs, SIGCHLD);
+
+    struct sigaction sa;
+    sa.sa_handler = exit;
+    sa.sa_mask = sigs;
+    sa.sa_flags = 0;
+
+    sigaction(SIGINT,  &sa, NULL);
+    sigaction(SIGHUP,  &sa, NULL);
+    sigaction(SIGCHLD, &sa, NULL);
+
+    return sigs;
+}
+
+static void reap(char *argv[])
+{
+    sigset_t sigs = prepsigs();
 
     pid_t child = 0;
     for (;;) {
