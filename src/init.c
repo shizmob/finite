@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 #include <signal.h>
 #include <sys/wait.h>
@@ -8,9 +9,12 @@ static void  reap(char *argv[]);
 static pid_t spawn(char *argv[]);
 extern void  init(char *argv[]);
 
+const char  *path;
+
 
 int main(int argc, char *argv[])
 {
+    path = strdup(argv[0]);
     const char *name = getenv("PROCNAME");
     if (name && *name)
         setprocname(name, argv[0]);
@@ -49,7 +53,7 @@ static pid_t spawn(char *argv[])
     pid_t pid = fork();
     if (!pid) {
         sigprocmask(SIG_UNBLOCK, &sigs, 0);
-        execv(argv[0], argv);
+        execv(path, argv);
     }
 
     return pid;
