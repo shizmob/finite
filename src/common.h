@@ -4,5 +4,5 @@
 #define DEFAULT_UMASK 022
 #define DEFAULT_USER  "root"
 
-void prepare_env(void);
+void prepenv();
 void setprocname(const char *name, char *argv0);

@@ -9,7 +9,7 @@ static void  reap(char *argv[]);
 static pid_t spawn(char *argv[]);
 extern void  init(char *argv[]);
 
-const char  *path;
+static const char *path;
 
 
 int main(int argc, char *argv[])
@@ -24,7 +24,7 @@ int main(int argc, char *argv[])
         reap(argv);
     } else {
         /* child process */
-        prepare_env();
+        prepenv();
         init(argv + 1);
     }
     return 1;
@@ -32,26 +32,49 @@ int main(int argc, char *argv[])
 
 static void reap(char *argv[])
 {
+    sigset_t sigs;
+    sigfillset(&sigs);
+    sigdelset(&sigs, SIGINT);
+    sigdelset(&sigs, SIGHUP);
+    sigdelset(&sigs, SIGCHLD);
+    sigprocmask(SIG_BLOCK, &sigs, 0);
+
+    sigemptyset(&sigs);
+    sigaddset(&sigs, SIGINT);
+    sigaddset(&sigs, SIGHUP);
+    sigaddset(&sigs, SIGCHILD);
+
     pid_t child = 0;
     for (;;) {
         if (!child)
             child = spawn(argv);
 
-        pid_t died = wait(NULL);
-        if (died > 0 && died == child)
-            child = 0;
+        siginfo_t info;
+        switch (sigwaitinfo(&sigs, &info)) {
+        case SIGINT:
+            /* shutdown request */
+            exit(0);
+            break;
+        case SIGHUP:
+            /* reboot request: just terminate everything including the child, to be respawned */
+            kill(-1, SIGKILL);
+            break;
+        case SIGCHLD:
+            /* child died */
+            waitpid(info.si_pid, NULL, 0);
+            if (info.si_pid == child)
+                child = 0;
+            break;
+        }
     }
 }
 
 static pid_t spawn(char *argv[])
 {
-    /* block signals so child process can't wreak havoc for parent */
-    sigset_t sigs;
-    sigfillset(&sigs);
-    sigprocmask(SIG_BLOCK, &sigs, 0);
-
     pid_t pid = fork();
     if (!pid) {
+        sigset_t sigs;
+        sigfillset(&sigs);
         sigprocmask(SIG_UNBLOCK, &sigs, 0);
         execv(path, argv);
     }
