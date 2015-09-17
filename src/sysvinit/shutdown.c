@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
     int cancel = 0, doit = 1;
     int runlevel = RUNLEVEL_SINGLE;
 
-    char o;
+    int o;
     while ((o = getopt(argc, argv, "akrhPHfFnc")) >= 0) {
         switch (o) {
         case 'a':

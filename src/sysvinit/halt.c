@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
 
     /* or from arguments */
     int doit = 1;
-    char o;
+    int o;
     while ((o = getopt(argc, argv, "ihdfnpw")) >= 0) {
         switch (o) {
         case 'n':
