@@ -70,11 +70,11 @@ $(DESTDIR)$(PREFIX)/sbin/sysvinit-poweroff $(DESTDIR)$(PREFIX)/sbin/sysvinit-reb
 	@echo [ LN] $(notdir $@)
 	@ln -s $(notdir $<) $@
 
-$(DESTDIR)$(MAN5DIR)/sysvinit-%.5: src/sysvinit/%.5 | $(DESTDIR)$(MAN5DIR)
+$(DESTDIR)$(MAN5DIR)/sysvinit-%.5: docs/sysvinit/%.5 | $(DESTDIR)$(MAN5DIR)
 	@echo [MAN] $(notdir $@)
 	@install -m 0644 $< $@
 
-$(DESTDIR)$(MAN8DIR)/sysvinit-%.8: src/sysvinit/%.8 | $(DESTDIR)$(MAN8DIR)
+$(DESTDIR)$(MAN8DIR)/sysvinit-%.8: docs/sysvinit/%.8 | $(DESTDIR)$(MAN8DIR)
 	@echo [MAN] $(notdir $@)
 	@install -m 0644 $< $@
 
@@ -98,12 +98,10 @@ symlink-simple: $(SIMPLE)
 $(DESTDIR)$(PREFIX)/sbin/simple-%: bin/simple-% | $(DESTDIR)$(PREFIX)/sbin
 	@echo [BIN] $(notdir $@)
 	@install -m 0755 $< $@
-	@echo $@ >> .manifest-simple
 
-$(DESTDIR)$(MAN8DIR)/simple-%.8: src/simple/%.8 | $(DESTDIR)$(MAN8DIR)
+$(DESTDIR)$(MAN8DIR)/simple-%.8: docs/simple/%.8 | $(DESTDIR)$(MAN8DIR)
 	@echo [MAN] $(notdir $@)
 	@install -m 0644 $< $@
-	@echo $@ >> .manifest-simple
 
 
 obj/%.o: src/%.c | obj
