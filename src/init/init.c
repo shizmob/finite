@@ -1,33 +1,26 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
+
 #include <unistd.h>
 #include <signal.h>
 #include <sys/wait.h>
-#include "common.h"
+#include <sys/stat.h>
+
+#include "config.h"
 
 static sigset_t    prepsigs(void);
-static void        reap(char *argv[]);
-static pid_t       spawn(char *argv[]);
-extern void        init(char *argv[]);
-
-static const char *path;
+static void        prepenv(void);
+static void        reap(void);
+static void        init(void);
 
 
 int main(int argc, char *argv[])
 {
-    path = strdup(argv[0]);
-    const char *name = getenv("PROCNAME");
-    if (name && *name)
-        setprocname(name, argv[0]);
+    init();
+    if (getpid() == 1)
+        reap();
 
-    if (getpid() == 1) {
-        /* parent process */
-        reap(argv);
-    } else {
-        /* child process */
-        prepenv();
-        init(argv + 1);
-    }
     return 1;
 }
 
@@ -51,15 +44,28 @@ static sigset_t prepsigs(void)
     return sigs;
 }
 
-static void reap(char *argv[])
+static void prepenv(void)
+{
+    umask(DEFAULT_UMASK);
+    chdir("/");
+
+    const char *con = getenv("console");
+    if (!con)
+        con = "/dev/console";
+
+    setenv("CONSOLE", con,            0);
+    setenv("HOME",    "/",            0);
+    setenv("PATH",    DEFAULT_PATH,   0);
+    setenv("PWD",     "/",            0);
+    setenv("TERM",    DEFAULT_TERM,   0);
+    setenv("USER",    DEFAULT_USER,   0);
+}
+
+static void reap(void)
 {
     sigset_t sigs = prepsigs();
 
-    pid_t child = 0;
     for (;;) {
-        if (!child)
-            child = spawn(argv);
-
         siginfo_t info;
         switch (sigwaitinfo(&sigs, &info)) {
         case SIGINT:
@@ -67,28 +73,32 @@ static void reap(char *argv[])
             exit(0);
             break;
         case SIGHUP:
-            /* reboot request: just terminate everything including the child, to be respawned */
+            /* reboot request: just terminate everything. */
             kill(-1, SIGKILL);
             break;
         case SIGCHLD:
             /* child died */
             waitpid(info.si_pid, NULL, 0);
-            if (info.si_pid == child)
-                child = 0;
             break;
         }
     }
 }
 
-static pid_t spawn(char *argv[])
+static void init(void)
 {
+    char *cmd = getenv("rc");
+    if (!cmd)
+        cmd = RC_COMMAND;
+
     pid_t pid = fork();
     if (!pid) {
         sigset_t sigs;
         sigfillset(&sigs);
         sigprocmask(SIG_UNBLOCK, &sigs, 0);
-        execv(path, argv);
-    }
 
-    return pid;
+        prepenv();
+        execv(cmd, (char *[]){ cmd, NULL, });
+        fprintf(stderr, "init: exec %s: ", cmd);
+        perror(NULL);
+    }
 }

@@ -5,16 +5,16 @@ CPPFLAGS  = -D_XOPEN_SOURCE=700
 LDFLAGS   = -pie -Wl,-z,relro -Wl,-z,now
 
 
-all: sysvinit simple
+all: sysvinit
 .PHONY: all install uninstall
 
-install: install-sysvinit install-simple
-uninstall: uninstall-sysvinit uninstall-simple
+install: install-sysvinit
+uninstall: uninstall-sysvinit
 
 
 # common
 
-$(O)/init.o: $(S)/common.h
+$(B)/init: $(O)/init/init.o $(S)/init/config.h
 
 
 # sysvinit
@@ -22,14 +22,15 @@ $(O)/init.o: $(S)/common.h
 .PHONY: sysvinit install-sysvinit uninstall-sysvinit symlink-sysvinit
 
 sysvinit: \
+    $(B)/init \
     $(B)/sysvinit-init \
     $(B)/sysvinit-halt \
     $(B)/sysvinit-killall5 \
     $(B)/sysvinit-shutdown
-$(B)/sysvinit-init: $(O)/init.o $(O)/common.o $(O)/sysvinit/inittab.o $(O)/sysvinit/runlevel.o $(O)/sysvinit/init.o
-$(B)/sysvinit-halt: $(O)/sysvinit/runlevel.o $(O)/sysvinit/wall.o $(O)/sysvinit/halt.o
-$(B)/sysvinit-shutdown: $(O)/sysvinit/runlevel.o $(O)/sysvinit/wall.o $(O)/sysvinit/shutdown.o
-$(B)/sysvinit-killall5: $(O)/sysvinit/killall5.o
+$(B)/sysvinit-init: $(O)/rc/sysvinit/inittab.o $(O)/rc/sysvinit/runlevel.o $(O)/rc/sysvinit/init.o
+$(B)/sysvinit-halt: $(O)/rc/sysvinit/runlevel.o $(O)/rc/sysvinit/wall.o $(O)/rc/sysvinit/halt.o
+$(B)/sysvinit-shutdown: $(O)/rc/sysvinit/runlevel.o $(O)/rc/sysvinit/wall.o $(O)/rc/sysvinit/shutdown.o
+$(B)/sysvinit-killall5: $(O)/rc/sysvinit/killall5.o
 
 SYSVINIT= \
     $(P)/sbin/sysvinit-init \
@@ -48,20 +49,3 @@ uninstall-sysvinit:
 	@rm -f $(SYSVINIT)
 symlink-sysvinit: $(SYSVINIT)
 	@for f in $(SYSVINIT) ; do nf=$$(dirname "$$f")/$$(echo $$(basename "$$f") | cut -d- -f2-) ; echo [ LN] $$(basename "$$nf") ; ln -sf $$(basename "$$f") $$nf  ; done
-
-
-# simple
-
-.PHONY: simple install-simple uninstall-simple simlink-simple
-simple: \
-    $(B)/simple-init
-$(B)/simple-init: $(O)/init.o $(O)/common.o $(O)/simple/init.o
-
-SIMPLE= \
-    $(P)/sbin/simple-init \
-    $(M)/man8/simple-init.8
-install-simple: $(SIMPLE)
-uninstall-simple:
-	@rm -f $(SIMPLE)
-symlink-simple: $(SIMPLE)
-	@for f in $(SIMPLE) ; do nf=$$(dirname "$$f")/$$(echo $$(basename "$$f") | cut -d- -f2-) ; echo [ LN] $$(basename "$$nf") ; ln -sf $$(basename "$$f") $$nf ; done

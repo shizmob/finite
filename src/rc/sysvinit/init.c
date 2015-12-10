@@ -31,16 +31,17 @@ static int    ntasks;
 static int    reappipe[2];
 
 
-void init(char *argv[])
+int main(int argc, char *argv[])
 {
     prepare();
     ntasks = parse_tab(INITTAB_FILE, tasks, sizeof(tasks) / sizeof(*tasks));
     prepare_system();
 
-    int level = determine_runlevel(argv);
+    int level = determine_runlevel(argv + 1);
     enter_runlevel(level, SYSV_DEFAULT_SLEEP);
 
     handle_communication();
+    return 1;
 }
 
 /* set up reap pipe and signal handlers */
